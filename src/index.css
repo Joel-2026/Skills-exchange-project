@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-200;
+    }
+}
+
+@layer components {
+    .bg-gradient-primary {
+        @apply bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white border-none;
+    }
+
+    .bg-gradient-sidebar {
+        @apply bg-gradient-to-b from-red-600 via-orange-600 to-yellow-500 text-white;
+    }
+
+    .text-gradient-primary {
+        @apply bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500;
+    }
+
+    /* Override default button styles if they match the primary pattern */
+    .btn-primary {
+        @apply bg-gradient-primary hover:opacity-90 transition-opacity;
+    }
+}
