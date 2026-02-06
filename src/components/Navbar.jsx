@@ -85,9 +85,15 @@ export default function Navbar() {
         }
     }
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        navigate('/login');
+    const handleLogout = async (e) => {
+        if (e) e.preventDefault();
+        try {
+            await supabase.auth.signOut();
+        } catch (error) {
+            console.error('Error signing out:', error);
+        } finally {
+            navigate('/login');
+        }
     };
 
     if (isHidden) return null;
