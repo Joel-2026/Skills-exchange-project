@@ -17,12 +17,15 @@ export default function Profile() {
     const [mySkills, setMySkills] = useState([]);
     const [isAddingSkill, setIsAddingSkill] = useState(false);
     const [isSkillsExpanded, setIsSkillsExpanded] = useState(false);
-    const [newSkill, setNewSkill] = useState({ title: '', description: '', category: '', mode: 'online' });
+    const [newSkill, setNewSkill] = useState({ title: '', description: '', category: '', mode: 'online', max_students: 1 });
     // Achievements state
     const [achievements, setAchievements] = useState([]);
     const [isAddingAchievement, setIsAddingAchievement] = useState(false);
     const [newAchievement, setNewAchievement] = useState({ title: '', description: '', image_url: '' });
     const [uploading, setUploading] = useState(false);
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+    const [groupSessions, setGroupSessions] = useState([]);
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
         async function getProfile() {
@@ -65,6 +68,31 @@ export default function Profile() {
                     .order('created_at', { ascending: false });
 
                 if (achievementsData) setAchievements(achievementsData);
+
+                // Fetch open group sessions (scheduled sessions with available spots)
+                // Removed explicit FK hint !public_group_sessions_provider_id_fkey
+                const { data: sessionsData, error: sessionsError } = await supabase
+                    .from('group_sessions')
+                    .select('*, skills(title, max_students, provider_id), requests(id), provider:profiles(full_name)')
+                    .eq('provider_id', targetUserId)
+                    .eq('status', 'scheduled');
+
+                if (sessionsError) {
+                    console.error('Error fetching profile group sessions:', sessionsError);
+                }
+
+                if (targetUserId === authUser.id) {
+                    // If viewing own profile, show all my sessions (including non-scheduled ones? logic seems to only fetch scheduled above)
+                    // Actually the above query filters by 'scheduled'.
+                    // If we want to show *all* sessions on own profile, we might need a different query, but for "Available" section, scheduled is correct.
+                    setGroupSessions(sessionsData || []);
+                    setIsOwnProfile(true);
+                    setUser(authUser);
+                } else {
+                    setGroupSessions(sessionsData || []);
+                    setCurrentUser(authUser);
+                }
+                setLoading(false);
             }
             setLoading(false);
         }
@@ -82,7 +110,8 @@ export default function Profile() {
                     title: newSkill.title,
                     description: newSkill.description,
                     category: newSkill.category,
-                    mode: newSkill.mode
+                    mode: newSkill.mode,
+                    max_students: newSkill.max_students
                 }
             ]).select();
 
@@ -90,7 +119,7 @@ export default function Profile() {
 
             setMySkills([data[0], ...mySkills]);
             setIsAddingSkill(false);
-            setNewSkill({ title: '', description: '', category: '', mode: 'online' });
+            setNewSkill({ title: '', description: '', category: '', mode: 'online', max_students: 1 });
             alert('Skill added!');
         } catch (error) {
             alert(error.message);
@@ -128,6 +157,38 @@ export default function Profile() {
             alert(error.message);
         } finally {
             setUploading(false);
+        }
+    }
+
+    async function uploadAvatar(event) {
+        try {
+            setIsUploadingAvatar(true);
+            if (!event.target.files || event.target.files.length === 0) {
+                throw new Error('You must select an image to upload.');
+            }
+
+            const file = event.target.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            let { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file);
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath);
+
+            setAvatarUrl(publicUrl);
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            setIsUploadingAvatar(false);
         }
     }
 
@@ -197,12 +258,37 @@ export default function Profile() {
 
     return (
         <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+            {/* Profile Header with Avatar */}
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-8 p-6 transition-colors">
+                <div className="flex items-center space-x-6">
+                    <div className="flex-shrink-0">
+                        {avatarUrl ? (
+                            <img
+                                className="h-24 w-24 rounded-full object-cover border-4 border-indigo-100 dark:border-indigo-900"
+                                src={avatarUrl}
+                                alt={fullName}
+                            />
+                        ) : (
+                            <span className="h-24 w-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 border-4 border-gray-200 dark:border-gray-600 flex items-center justify-center">
+                                <User className="h-16 w-16 text-gray-400 dark:text-gray-500" />
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex-1">
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{fullName || 'Anonymous User'}</h1>
+                        {bio && (
+                            <p className="mt-2 text-gray-600 dark:text-gray-300 whitespace-pre-line">{bio}</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+
             <div className="md:grid md:grid-cols-3 md:gap-6">
                 <div className="md:col-span-1">
                     <div className="px-4 sm:px-0">
-                        <h3 className="text-lg font-medium leading-6 text-gray-900">Profile</h3>
-                        <p className="mt-1 text-sm text-gray-600">
-                            This information will be displayed publicly so others can find you.
+                        <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Profile Details</h3>
+                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            {isOwnProfile ? 'Update your profile information.' : 'Public profile information.'}
                         </p>
                     </div>
                 </div>
@@ -264,22 +350,39 @@ export default function Profile() {
                             {/* Avatar URL (Simple Text Input for MVP) */}
                             {isOwnProfile && (
                                 <div>
-                                    <label htmlFor="avatar_url" className="block text-sm font-medium text-gray-700">
-                                        Avatar URL
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Profile Picture
                                     </label>
-                                    <div className="mt-1 flex rounded-md shadow-sm">
-                                        <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                                            http://
-                                        </span>
-                                        <input
-                                            type="text"
-                                            name="avatar_url"
-                                            id="avatar_url"
-                                            value={avatarUrl}
-                                            onChange={(e) => setAvatarUrl(e.target.value)}
-                                            className="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300 px-3 py-2 border"
-                                            placeholder="example.com/me.png"
-                                        />
+                                    <div className="mt-1 flex items-center space-x-4">
+                                        <div className="flex-shrink-0">
+                                            {avatarUrl ? (
+                                                <img
+                                                    className="h-12 w-12 rounded-full object-cover"
+                                                    src={avatarUrl}
+                                                    alt="Current Avatar"
+                                                />
+                                            ) : (
+                                                <span className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                                                    <User className="h-full w-full text-gray-300 dark:text-gray-500" />
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <input
+                                                type="file"
+                                                id="avatar-upload"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={uploadAvatar}
+                                                disabled={isUploadingAvatar}
+                                            />
+                                            <label
+                                                htmlFor="avatar-upload"
+                                                className="cursor-pointer bg-white dark:bg-gray-700 py-2 px-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                                            >
+                                                {isUploadingAvatar ? 'Uploading...' : 'Change Photo'}
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -356,6 +459,15 @@ export default function Profile() {
                                         <option value="any">Any</option>
                                     </select>
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Max Students</label>
+                                    <select className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2"
+                                        value={newSkill.max_students} onChange={e => setNewSkill({ ...newSkill, max_students: parseInt(e.target.value) })}>
+                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                                            <option key={num} value={num}>{num} {num === 1 ? 'student' : 'students'}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <div className="text-right">
                                     <button onClick={addSkill} disabled={loading} className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white btn-primary">
                                         <Save className="w-4 h-4 mr-2" />
@@ -384,6 +496,11 @@ export default function Profile() {
                                             </div>
                                             <p className="text-xs text-indigo-500 dark:text-indigo-400 mb-2 uppercase tracking-wide">{skill.category}</p>
                                             <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3">{skill.description}</p>
+                                            {skill.max_students && (
+                                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                                                    Max: {skill.max_students} {skill.max_students === 1 ? 'student' : 'students'}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -510,6 +627,80 @@ export default function Profile() {
                     )}
                 </div>
             </div>
+
+            {/* Available Group Sessions Section */}
+            {groupSessions.length > 0 && (
+                <>
+                    <div className="hidden sm:block" aria-hidden="true">
+                        <div className="py-5">
+                            <div className="border-t border-gray-200" />
+                        </div>
+                    </div>
+
+                    <div className="md:grid md:grid-cols-3 md:gap-6">
+                        <div className="md:col-span-1">
+                            <div className="px-4 sm:px-0">
+                                <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Available Group Sessions</h3>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                    Join an open group session
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 md:mt-0 md:col-span-2">
+                            <div className="space-y-3">
+                                {groupSessions.map(session => {
+                                    const currentParticipants = session.requests?.length || 0;
+                                    const maxStudents = session.skills?.max_students || 1;
+                                    const spotsLeft = maxStudents - currentParticipants;
+                                    const alreadyJoined = session.requests?.some(req => req.learner_id === currentUser?.id);
+                                    const isFull = spotsLeft <= 0;
+
+                                    return (
+                                        <div key={session.id} className="bg-white dark:bg-gray-800 shadow rounded-md p-4 border border-gray-100 dark:border-gray-700">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <h4 className="font-medium text-gray-900 dark:text-white">{session.skills?.title}</h4>
+                                                    <p className="text-xs text-gray-400 mt-1">
+                                                        {isFull ? (
+                                                            <span className="text-red-500 font-medium">Full ({currentParticipants}/{maxStudents})</span>
+                                                        ) : (
+                                                            <span>{currentParticipants}/{maxStudents} spots filled • {spotsLeft} spots left</span>
+                                                        )}
+                                                    </p>
+                                                    {session.scheduled_at && (
+                                                        <p className="text-xs text-gray-400">
+                                                            Scheduled: {new Date(session.scheduled_at).toLocaleString()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {!isOwnProfile && !alreadyJoined && currentUser && !isFull && (
+                                                    <button
+                                                        onClick={() => joinGroupSession(session.id, session.skill_id, session.provider_id)}
+                                                        className="ml-4 bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
+                                                    >
+                                                        Join Session
+                                                    </button>
+                                                )}
+                                                {isFull && !isOwnProfile && !alreadyJoined && (
+                                                    <span className="ml-4 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded">
+                                                        Full
+                                                    </span>
+                                                )}
+                                                {alreadyJoined && (
+                                                    <span className="ml-4 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                                                        Joined
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

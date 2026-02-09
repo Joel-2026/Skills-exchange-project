@@ -14,7 +14,10 @@ export default function Search() {
     const [searchTerm, setSearchTerm] = useState(searchParams.get('category') || '');
     const [filterCategory, setFilterCategory] = useState('All');
     const [filterMode, setFilterMode] = useState('all');
+    const [filterProficiency, setFilterProficiency] = useState('all');
+    const [filterGroupSessions, setFilterGroupSessions] = useState(false);
     const [sortBy, setSortBy] = useState('newest');
+    const [groupSessions, setGroupSessions] = useState([]);
 
     const navigate = useNavigate();
 
@@ -22,6 +25,7 @@ export default function Search() {
 
     useEffect(() => {
         fetchSkills();
+        fetchGroupSessions();
     }, []);
 
     async function fetchSkills() {
@@ -46,6 +50,14 @@ export default function Search() {
         setLoading(false);
     }
 
+    async function fetchGroupSessions() {
+        const { data } = await supabase
+            .from('group_sessions')
+            .select('skill_id, requests(id), skills(max_students)')
+            .eq('status', 'scheduled');
+        setGroupSessions(data || []);
+    }
+
     const filteredSkills = skills.filter(skill => {
         // Search Term Logic
         const matchesSearch =
@@ -59,7 +71,18 @@ export default function Search() {
         // Category Logic
         const matchesCategory = filterCategory === 'All' || skill.category === filterCategory;
 
-        return matchesSearch && matchesMode && matchesCategory;
+        // Proficiency Logic
+        const matchesProficiency = filterProficiency === 'all' || skill.proficiency === filterProficiency;
+
+        // Group Sessions Logic
+        const hasGroupSession = groupSessions.some(gs => {
+            const currentParticipants = gs.requests?.length || 0;
+            const maxStudents = gs.skills?.max_students || 1;
+            return gs.skill_id === skill.id && currentParticipants < maxStudents;
+        });
+        const matchesGroupSessions = !filterGroupSessions || hasGroupSession;
+
+        return matchesSearch && matchesMode && matchesCategory && matchesProficiency && matchesGroupSessions;
     }).sort((a, b) => {
         if (sortBy === 'newest') return new Date(b.created_at) - new Date(a.created_at);
         if (sortBy === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
@@ -113,6 +136,8 @@ export default function Search() {
         setSearchTerm('');
         setFilterCategory('All');
         setFilterMode('all');
+        setFilterProficiency('all');
+        setFilterGroupSessions(false);
         setSortBy('newest');
     }
 
@@ -128,7 +153,7 @@ export default function Search() {
                                 <Filter className="w-5 h-5 mr-2 text-indigo-500" />
                                 Filters
                             </h3>
-                            {(searchTerm || filterCategory !== 'All' || filterMode !== 'all') && (
+                            {(searchTerm || filterCategory !== 'All' || filterMode !== 'all' || filterProficiency !== 'all' || filterGroupSessions) && (
                                 <button onClick={clearFilters} className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
                                     Reset
                                 </button>

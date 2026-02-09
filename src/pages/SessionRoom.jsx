@@ -5,12 +5,12 @@ import { supabase } from '../lib/supabaseClient';
 import { Send, Paperclip, Video, PhoneOff } from 'lucide-react';
 
 export default function SessionRoom() {
-    const { requestId } = useParams();
+    const { requestId, sessionId } = useParams(); // sessionId is for group sessions
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const mode = searchParams.get('mode') || 'video'; // 'video' or 'chat'
 
-    const [session, setSession] = useState(null);
+    const [session, setSession] = useState(null); // Can be request data OR group session data
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [user, setUser] = useState(null);
@@ -21,19 +21,39 @@ export default function SessionRoom() {
     // Context Menu State
     const [contextMenu, setContextMenu] = useState(null); // { x, y, messageId, isMe }
 
+    const isGroupSession = !!sessionId;
+    const currentId = sessionId || requestId;
+
     // 1. Fetch User & Session Details
     useEffect(() => {
         async function loadData() {
             const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
 
-            const { data, error } = await supabase
-                .from('requests')
-                .select(`*, skills(*, profiles(full_name)), profiles:learner_id(full_name)`)
-                .eq('id', requestId)
-                .single();
+            let data, error;
+
+            if (isGroupSession) {
+                // Fetch Group Session Details
+                const { data: groupData, error: groupError } = await supabase
+                    .from('group_sessions')
+                    .select('*, skills(title, profiles(full_name)), provider:profiles(full_name)')
+                    .eq('id', sessionId)
+                    .single();
+                data = groupData;
+                error = groupError;
+            } else {
+                // Fetch Request Details (One-on-One)
+                const { data: reqData, error: reqError } = await supabase
+                    .from('requests')
+                    .select(`*, skills(*, profiles(full_name)), profiles:learner_id(full_name)`)
+                    .eq('id', requestId)
+                    .single();
+                data = reqData;
+                error = reqError;
+            }
 
             if (error || !data) {
+                console.error('Session load error:', error);
                 alert('Session not found or access denied.');
                 navigate('/dashboard');
             } else {
@@ -42,28 +62,35 @@ export default function SessionRoom() {
             setLoading(false);
         }
         loadData();
-    }, [requestId, navigate]);
+    }, [requestId, sessionId, isGroupSession, navigate]);
 
     // 2. Fetch Initial Messages & Subscribe to Realtime
     useEffect(() => {
-        if (!requestId) return;
+        if (!currentId) return;
 
-        // Fetch history
-        supabase
+        let query = supabase
             .from('messages')
             .select('*')
-            .eq('request_id', requestId)
-            .order('created_at', { ascending: true })
-            .then(({ data }) => {
-                if (data) setMessages(data);
-            });
+            .order('created_at', { ascending: true });
+
+        if (isGroupSession) {
+            query = query.eq('group_session_id', sessionId);
+        } else {
+            query = query.eq('request_id', requestId);
+        }
+
+        // Fetch history
+        query.then(({ data }) => {
+            if (data) setMessages(data);
+        });
 
         // Realtime Subscription
+        const filter = isGroupSession ? `group_session_id=eq.${sessionId}` : `request_id=eq.${requestId}`;
         const channel = supabase
-            .channel(`room-${requestId}`)
+            .channel(`room-${currentId}`)
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'messages', filter: `request_id=eq.${requestId}` },
+                { event: '*', schema: 'public', table: 'messages', filter: filter },
                 (payload) => {
                     if (payload.eventType === 'INSERT') {
                         setMessages((current) => [...current, payload.new]);
@@ -77,7 +104,7 @@ export default function SessionRoom() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [requestId]);
+    }, [requestId, sessionId, isGroupSession, currentId]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -95,11 +122,18 @@ export default function SessionRoom() {
         e.preventDefault();
         if (!newMessage.trim()) return;
 
-        const { error } = await supabase.from('messages').insert({
-            request_id: requestId,
+        const msgData = {
             user_id: user.id,
             content: newMessage
-        });
+        };
+
+        if (isGroupSession) {
+            msgData.group_session_id = sessionId;
+        } else {
+            msgData.request_id = requestId;
+        }
+
+        const { error } = await supabase.from('messages').insert(msgData);
 
         if (error) console.error(error);
         else setNewMessage('');
@@ -110,7 +144,7 @@ export default function SessionRoom() {
         if (!file) return;
 
         setUploading(true);
-        const fileName = `${requestId}/${Date.now()}-${file.name}`;
+        const fileName = `${currentId}/${Date.now()}-${file.name}`;
 
         const { error: uploadError } = await supabase.storage
             .from('chat-attachments')
@@ -127,12 +161,19 @@ export default function SessionRoom() {
             .getPublicUrl(fileName);
 
         // Send message with media
-        await supabase.from('messages').insert({
-            request_id: requestId,
+        const msgData = {
             user_id: user.id,
             content: 'Shared a file',
             media_url: publicUrl
-        });
+        };
+
+        if (isGroupSession) {
+            msgData.group_session_id = sessionId;
+        } else {
+            msgData.request_id = requestId;
+        }
+
+        await supabase.from('messages').insert(msgData);
 
         setUploading(false);
     };
@@ -174,7 +215,13 @@ export default function SessionRoom() {
     if (loading) return <div className="p-8 text-center text-gray-500">Connecting to session...</div>;
 
     // Use Jitsi Meet via iFrame
-    const jitsiRoomName = `skill-exchange-${requestId}`;
+    const jitsiRoomName = `skill-exchange-${currentId}`;
+
+    // Determine title and subtitle based on session type
+    const sessionTitle = session?.skills?.title || 'Session';
+    const sessionSubtitle = isGroupSession
+        ? `Hosted by ${session?.provider?.full_name}`
+        : `with ${user?.id === session?.learner_id ? session?.skills?.profiles?.full_name : session?.profiles?.full_name}`;
 
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] bg-gray-100">
@@ -204,18 +251,16 @@ export default function SessionRoom() {
             <div className="bg-white border-b px-4 py-3 flex justify-between items-center shadow-sm">
                 <div>
                     <h2 className="text-lg font-bold text-gray-900">
-                        {mode === 'chat' ? 'Chat: ' : 'Class: '}{session?.skills?.title}
+                        {mode === 'chat' ? 'Chat: ' : 'Class: '}{sessionTitle}
                     </h2>
                     <p className="text-sm text-gray-500">
-                        with {user?.id === session?.learner_id
-                            ? session?.skills?.profiles?.full_name
-                            : session?.profiles?.full_name}
+                        {sessionSubtitle}
                     </p>
                 </div>
                 <div className="flex space-x-2">
                     {mode === 'chat' && (
                         <button
-                            onClick={() => navigate(`/session/${requestId}?mode=video`)}
+                            onClick={() => navigate(isGroupSession ? `/group-session/${sessionId}?mode=video` : `/session/${requestId}?mode=video`)}
                             className="flex items-center px-3 py-2 bg-orange-50 text-orange-600 rounded-md hover:bg-orange-100 text-sm font-medium"
                         >
                             <Video className="w-4 h-4 mr-2" />
@@ -224,7 +269,7 @@ export default function SessionRoom() {
                     )}
                     {mode === 'video' && (
                         <button
-                            onClick={() => navigate(`/session/${requestId}?mode=chat`)}
+                            onClick={() => navigate(isGroupSession ? `/group-session/${sessionId}?mode=chat` : `/session/${requestId}?mode=chat`)}
                             className="flex items-center px-3 py-2 bg-orange-50 text-orange-600 rounded-md hover:bg-orange-100 text-sm font-medium"
                         >
                             <Send className="w-4 h-4 mr-2" />
@@ -232,7 +277,7 @@ export default function SessionRoom() {
                         </button>
                     )}
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate(isGroupSession ? '/group-sessions' : '/dashboard')}
                         className="flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 text-sm font-medium"
                     >
                         <PhoneOff className="w-4 h-4 mr-2" />

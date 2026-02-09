@@ -14,6 +14,7 @@ import History from './pages/History';
 import Onboarding from './pages/Onboarding';
 import Leaderboard from './pages/Leaderboard';
 import Forum from './pages/Forum';
+import GroupSessions from './pages/GroupSessions';
 
 function App() {
   return (
@@ -33,6 +34,8 @@ function App() {
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/forum" element={<Forum />} />
+          <Route path="/group-sessions" element={<GroupSessions />} />
+          <Route path="/group-session/:sessionId" element={<SessionRoom />} />
         </Routes>
       </Layout>
     </Router>

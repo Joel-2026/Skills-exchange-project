@@ -18,6 +18,25 @@ export default function Onboarding() {
         }
     };
 
+    // Check if already completed
+    React.useEffect(() => {
+        const checkOnboarding = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('onboarding_completed')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile?.onboarding_completed) {
+                    navigate('/dashboard', { replace: true });
+                }
+            }
+        };
+        checkOnboarding();
+    }, [navigate]);
+
     const handleContinue = async () => {
         setLoading(true);
         try {

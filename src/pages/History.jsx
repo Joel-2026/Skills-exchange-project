@@ -23,7 +23,12 @@ export default function History() {
                     learner:profiles!public_requests_learner_id_fkey (full_name, avatar_url)
                 `)
                 .eq('status', 'completed')
+                .or(`provider_id.eq.${user.id},learner_id.eq.${user.id}`)
                 .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error fetching history:', error);
+            }
 
             if (data) {
                 const mapped = data.map(session => {

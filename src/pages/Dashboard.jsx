@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';  // Import useNavigate
 import { supabase } from '../lib/supabaseClient';
-import { Clock, BookOpen, PlusCircle } from 'lucide-react';
+import { Clock, BookOpen, PlusCircle, Users } from 'lucide-react';
 
 export default function Dashboard() {
     const [session, setSession] = useState(null);
@@ -144,6 +144,32 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
+
+                {/* Action Card 3 - Group Sessions */}
+                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-all">
+                    <div className="p-5">
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                <Users className="h-6 w-6 text-gray-400" />
+                            </div>
+                            <div className="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Manage groups</dt>
+                                    <dd>
+                                        <div className="text-lg font-medium text-gray-900 dark:text-white">Group Sessions</div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-700 px-5 py-3 transition-colors">
+                        <div className="text-sm">
+                            <Link to="/group-sessions" className="font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-200">
+                                Manage Groups &rarr;
+                            </Link>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Skill Categories */}
@@ -252,7 +278,11 @@ function RequestsList({ session }) {
     const [incoming, setIncoming] = useState([]);
     const [outgoing, setOutgoing] = useState([]);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate(); // Hook for navigation
+    const [showAllIncoming, setShowAllIncoming] = useState(false);
+    const [showAllOutgoing, setShowAllOutgoing] = useState(false);
+    const navigate = useNavigate();
+
+    const LIMIT = 3;
 
     useEffect(() => {
         if (session) fetchRequests();
@@ -314,7 +344,7 @@ function RequestsList({ session }) {
                 // Notify Learner
                 await supabase.from('notifications').insert([{
                     user_id: requestData.learner_id,
-                    type: `request_${newStatus}`,
+                    type: 'request_' + newStatus,
                     message: `Your request for "${requestData.skills.title}" was ${newStatus}.`,
                     link: `/session/${requestId}`
                 }]);
@@ -324,7 +354,7 @@ function RequestsList({ session }) {
         }
     }
 
-    // Moved Helper Function OUTSIDE map or top of component
+    // Requests Helper
     const getStatusBadge = (status) => {
         switch (status) {
             case 'completed': return <span className="font-bold text-green-600">Completed</span>;
@@ -335,68 +365,94 @@ function RequestsList({ session }) {
         }
     };
 
-    if (loading) return <div>Loading requests...</div>;
+    if (loading) return <div className="dark:text-gray-300">Loading requests...</div>;
+
+    const visibleIncoming = showAllIncoming ? incoming : incoming.slice(0, LIMIT);
+    const visibleOutgoing = showAllOutgoing ? outgoing : outgoing.slice(0, LIMIT);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Incoming Requests */}
-            {/* Incoming Requests */}
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors flex flex-col h-full">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Incoming Requests (To Teach)</h3>
-                {incoming.length === 0 ? <p className="text-gray-500">No requests yet.</p> : (
-                    <ul className="divide-y divide-gray-200">
-                        {incoming.map(req => (
-                            <li key={req.id} className="py-4">
-                                <p className="text-sm font-medium text-indigo-600">{req.skills.title}</p>
-                                <p className="text-sm text-gray-500">Learner: <Link to={`/profile/${req.learner_id}`} className="text-indigo-600 hover:underline">{req.profiles.full_name}</Link></p>
-                                <p className="text-xs text-gray-400 mb-2">Status: {getStatusBadge(req.status)}</p>
+                <div className="flex-1">
+                    {incoming.length === 0 ? <p className="text-gray-500 dark:text-gray-400">No requests yet.</p> : (
+                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {visibleIncoming.map(req => (
+                                <li key={req.id} className="py-4">
+                                    <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">{req.skills.title}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Learner: <Link to={`/profile/${req.learner_id}`} className="text-indigo-600 dark:text-indigo-400 hover:underline">{req.profiles.full_name}</Link></p>
+                                    <p className="text-xs text-gray-400 mb-2">Status: {getStatusBadge(req.status)}</p>
 
-                                {req.status === 'pending' && (
-                                    <div className="flex space-x-2">
-                                        <button onClick={() => updateStatus(req.id, 'accepted', req)} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Accept</button>
-                                        <button onClick={() => updateStatus(req.id, 'declined', req)} className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Decline</button>
-                                    </div>
-                                )}
-                                {req.status === 'accepted' && (
-                                    <div className="flex space-x-2 mt-2">
-                                        <button onClick={() => updateStatus(req.id, 'completed', req)} className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded">Mark Completed</button>
-                                        <Link to={`/session/${req.id}?mode=chat`} className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded flex items-center border hover:bg-gray-200">
-                                            Chat Only
-                                        </Link>
-                                        <Link to={`/session/${req.id}?mode=video`} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded flex items-center hover:bg-green-200">
-                                            Video Class
-                                        </Link>
-                                    </div>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
+                                    {req.status === 'pending' && (
+                                        <div className="flex space-x-2">
+                                            <button onClick={() => updateStatus(req.id, 'accepted', req)} className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">Accept</button>
+                                            <button onClick={() => updateStatus(req.id, 'declined', req)} className="text-xs bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 px-2 py-1 rounded">Decline</button>
+                                        </div>
+                                    )}
+                                    {req.status === 'accepted' && (
+                                        <div className="flex space-x-2 mt-2">
+                                            <button onClick={() => updateStatus(req.id, 'completed', req)} className="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-2 py-1 rounded">Mark Completed</button>
+                                            <Link to={`/session/${req.id}?mode=chat`} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex items-center border dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600">
+                                                Chat Only
+                                            </Link>
+                                            <Link to={`/session/${req.id}?mode=video`} className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded flex items-center hover:bg-green-200 dark:hover:bg-green-800">
+                                                Video Class
+                                            </Link>
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+                {incoming.length > LIMIT && (
+                    <div className="mt-4 text-center border-t border-gray-100 dark:border-gray-700 pt-3">
+                        <button
+                            onClick={() => setShowAllIncoming(!showAllIncoming)}
+                            className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                        >
+                            {showAllIncoming ? 'Show Less' : `See More (${incoming.length - LIMIT} more)`}
+                        </button>
+                    </div>
                 )}
             </div>
 
             {/* Outgoing Requests */}
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors flex flex-col h-full">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">My Bookings (To Learn)</h3>
-                {outgoing.length === 0 ? <p className="text-gray-500">No bookings made.</p> : (
-                    <ul className="divide-y divide-gray-200">
-                        {outgoing.map(req => (
-                            <li key={req.id} className="py-4">
-                                <p className="text-sm font-medium text-indigo-600">{req.skills.title}</p>
-                                <p className="text-sm text-gray-500">Teacher: <Link to={`/profile/${req.provider_id}`} className="text-indigo-600 hover:underline">{req.profiles.full_name}</Link></p>
-                                <p className="text-xs text-gray-400">Status: {getStatusBadge(req.status)}</p>
-                                {req.status === 'accepted' && (
-                                    <div className="flex space-x-2 mt-2">
-                                        <Link to={`/session/${req.id}?mode=chat`} className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded flex items-center border hover:bg-gray-200">
-                                            Chat Only
-                                        </Link>
-                                        <Link to={`/session/${req.id}?mode=video`} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded flex items-center hover:bg-green-200">
-                                            Video Class
-                                        </Link>
-                                    </div>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
+                <div className="flex-1">
+                    {outgoing.length === 0 ? <p className="text-gray-500 dark:text-gray-400">No bookings made.</p> : (
+                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                            {visibleOutgoing.map(req => (
+                                <li key={req.id} className="py-4">
+                                    <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">{req.skills.title}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Teacher: <Link to={`/profile/${req.provider_id}`} className="text-indigo-600 dark:text-indigo-400 hover:underline">{req.profiles.full_name}</Link></p>
+                                    <p className="text-xs text-gray-400">Status: {getStatusBadge(req.status)}</p>
+                                    {req.status === 'accepted' && (
+                                        <div className="flex space-x-2 mt-2">
+                                            <Link to={`/session/${req.id}?mode=chat`} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex items-center border dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600">
+                                                Chat Only
+                                            </Link>
+                                            <Link to={`/session/${req.id}?mode=video`} className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded flex items-center hover:bg-green-200 dark:hover:bg-green-800">
+                                                Video Class
+                                            </Link>
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+                {outgoing.length > LIMIT && (
+                    <div className="mt-4 text-center border-t border-gray-100 dark:border-gray-700 pt-3">
+                        <button
+                            onClick={() => setShowAllOutgoing(!showAllOutgoing)}
+                            className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                        >
+                            {showAllOutgoing ? 'Show Less' : `See More (${outgoing.length - LIMIT} more)`}
+                        </button>
+                    </div>
                 )}
             </div>
         </div>

@@ -27,20 +27,28 @@ export default function Forum() {
     }
 
     async function createPost() {
-        if (!newPost.title || !newPost.body) return;
+        console.log('Attempting to create post:', newPost);
+        if (!newPost.title.trim() || !newPost.body.trim()) {
+            alert('Please fill in both title and body fields');
+            return;
+        }
 
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return alert('Please login first.');
 
-        const { error } = await supabase.from('posts').insert([{
+        console.log('User ID:', user.id);
+
+        const { data, error } = await supabase.from('posts').insert([{
             user_id: user.id,
             title: newPost.title,
             body: newPost.body
-        }]);
+        }]).select();
 
         if (error) {
-            alert(error.message);
+            console.error('Error creating post:', error);
+            alert(`Failed to create post: ${error.message}`);
         } else {
+            console.log('Post created successfully:', data);
             setNewPost({ title: '', body: '' });
             setIsCreating(false);
             fetchPosts();

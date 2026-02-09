@@ -11,6 +11,7 @@ export default function AddSkill() {
     const [description, setDescription] = useState('');
     const [proficiency, setProficiency] = useState('Beginner');
     const [mode, setMode] = useState('online');
+    const [maxStudents, setMaxStudents] = useState(1);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -28,7 +29,8 @@ export default function AddSkill() {
                     category,
                     description,
                     mode,
-                    proficiency
+                    proficiency,
+                    max_students: maxStudents
                 }
             ]);
 
@@ -162,6 +164,29 @@ export default function AddSkill() {
                                     <option value="any">Any</option>
                                 </select>
                             </div>
+                        </div>
+
+                        {/* Max Students */}
+                        <div>
+                            <label htmlFor="maxStudents" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Maximum Students per Session
+                            </label>
+                            <div className="mt-1">
+                                <select
+                                    id="maxStudents"
+                                    name="maxStudents"
+                                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md p-2 border"
+                                    value={maxStudents}
+                                    onChange={(e) => setMaxStudents(parseInt(e.target.value))}
+                                >
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                                        <option key={num} value={num}>{num} {num === 1 ? 'student' : 'students'}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                How many learners can you teach at once?
+                            </p>
                         </div>
 
                         <div className="pt-5">

@@ -88,11 +88,16 @@ export default function Navbar() {
     const handleLogout = async (e) => {
         if (e) e.preventDefault();
         try {
-            await supabase.auth.signOut();
+            // Attempt local-only sign out to avoid network 404s if service is paused/down
+            const { error } = await supabase.auth.signOut({ scope: 'local' });
+            if (error) throw error;
         } catch (error) {
-            console.error('Error signing out:', error);
+            console.warn('Network sign-out failed, clearing local session manually:', error);
+            // Fallback: Force clear local storage items related to Supabase
+            localStorage.clear(); // Simple brute force for this MVP to ensure logout
         } finally {
-            navigate('/login');
+            setUser(null); // Force state update
+            navigate('/login', { replace: true });
         }
     };
 
