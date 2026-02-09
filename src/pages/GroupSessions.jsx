@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Users, Calendar, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function GroupSessions() {
+    const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [skills, setSkills] = useState([]);
     const [groupSessions, setGroupSessions] = useState([]); // Sessions I'm hosting
@@ -187,8 +189,8 @@ export default function GroupSessions() {
                     <button
                         onClick={() => setShowCreateOpen(!showCreateOpen)}
                         className={`text-sm px-4 py-2 rounded-md transition-colors ${showCreateOpen
-                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
                             }`}
                     >
                         {showCreateOpen ? 'Cancel' : '+ New Open Session'}
@@ -448,7 +450,7 @@ export default function GroupSessions() {
                                         </div>
                                         <div className="flex space-x-2 mt-2">
                                             <button
-                                                onClick={() => window.location.href = `/group-session/${session.id}`}
+                                                onClick={() => navigate(`/group-session/${session.id}`)}
                                                 className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm"
                                             >
                                                 Start Class
@@ -534,7 +536,7 @@ export default function GroupSessions() {
                                         </div>
                                         <div className="flex space-x-2">
                                             <button
-                                                onClick={() => window.location.href = `/group-session/${session.id}`}
+                                                onClick={() => navigate(`/group-session/${session.id}`)}
                                                 className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors text-sm"
                                             >
                                                 Join Class
