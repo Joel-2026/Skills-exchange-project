@@ -1,8 +1,7 @@
-
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { Send, Paperclip, Video, PhoneOff } from 'lucide-react';
+import { Send, Paperclip, Video, PhoneOff, LogOut } from 'lucide-react';
 
 export default function SessionRoom() {
     const { requestId, sessionId } = useParams(); // sessionId is for group sessions
@@ -212,6 +211,45 @@ export default function SessionRoom() {
         setContextMenu(null);
     };
 
+    const endSession = async () => {
+
+        try {
+            if (isGroupSession) {
+                // Update group session status
+                const { error: sessionError } = await supabase
+                    .from('group_sessions')
+                    .update({ status: 'completed' })
+                    .eq('id', sessionId);
+
+                if (sessionError) throw sessionError;
+
+                // Update all requests associated with this session to completed
+                // This ensures learners see it in their history
+                const { error: reqError } = await supabase
+                    .from('requests')
+                    .update({ status: 'completed' })
+                    .eq('group_session_id', sessionId);
+
+                if (reqError) throw reqError;
+
+            } else {
+                // Update 1-on-1 request status
+                const { error } = await supabase
+                    .from('requests')
+                    .update({ status: 'completed' })
+                    .eq('id', requestId);
+
+                if (error) throw error;
+            }
+
+            alert('Session ended successfully.');
+            navigate(isGroupSession ? '/group-sessions' : '/dashboard');
+        } catch (error) {
+            console.error('Error ending session:', error);
+            alert('Failed to end session');
+        }
+    };
+
     if (loading) return <div className="p-8 text-center text-gray-500">Connecting to session...</div>;
 
     // Use Jitsi Meet via iFrame
@@ -219,9 +257,15 @@ export default function SessionRoom() {
 
     // Determine title and subtitle based on session type
     const sessionTitle = session?.skills?.title || 'Session';
-    const sessionSubtitle = isGroupSession
-        ? `Hosted by ${session?.provider?.full_name}`
-        : `with ${user?.id === session?.learner_id ? session?.skills?.profiles?.full_name : session?.profiles?.full_name}`;
+    const partnerId = isGroupSession
+        ? session?.provider_id
+        : (user?.id === session?.learner_id ? session?.skills?.provider_id : session?.learner_id);
+
+    const partnerName = isGroupSession
+        ? session?.provider?.full_name
+        : (user?.id === session?.learner_id ? session?.skills?.profiles?.full_name : session?.profiles?.full_name);
+
+    const isProvider = user?.id === session?.provider_id;
 
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] bg-gray-100">
@@ -254,7 +298,10 @@ export default function SessionRoom() {
                         {mode === 'chat' ? 'Chat: ' : 'Class: '}{sessionTitle}
                     </h2>
                     <p className="text-sm text-gray-500">
-                        {sessionSubtitle}
+                        {isGroupSession ? 'Hosted by ' : 'with '}
+                        <Link to={`/profile/${partnerId}`} className="hover:underline hover:text-indigo-600">
+                            {partnerName}
+                        </Link>
                     </p>
                 </div>
                 <div className="flex space-x-2">
@@ -276,13 +323,24 @@ export default function SessionRoom() {
                             Switch to Chat
                         </button>
                     )}
-                    <button
-                        onClick={() => navigate(isGroupSession ? '/group-sessions' : '/dashboard')}
-                        className="flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 text-sm font-medium"
-                    >
-                        <PhoneOff className="w-4 h-4 mr-2" />
-                        Exit
-                    </button>
+
+                    {isProvider ? (
+                        <button
+                            onClick={endSession}
+                            className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium"
+                        >
+                            <PhoneOff className="w-4 h-4 mr-2" />
+                            End Session
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => navigate(isGroupSession ? '/group-sessions' : '/dashboard')}
+                            className="flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 text-sm font-medium"
+                        >
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Exit
+                        </button>
+                    )}
                 </div>
             </div>
 

@@ -120,18 +120,22 @@ export default function Forum() {
                     {posts.map(post => (
                         <div key={post.id} className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 hover:shadow-md transition-all border border-gray-100 dark:border-gray-700">
                             <div className="flex items-start">
-                                <img
-                                    className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-600"
-                                    src={post.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${post.profiles?.full_name}&background=random`}
-                                    alt={post.profiles?.full_name}
-                                />
+                                <Link to={`/profile/${post.user_id || post.profiles?.id}`}>
+                                    <img
+                                        className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+                                        src={post.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${post.profiles?.full_name}&background=random`}
+                                        alt={post.profiles?.full_name}
+                                    />
+                                </Link>
                                 <div className="ml-4 flex-1">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">{post.title}</h3>
                                         <span className="text-sm text-gray-500 dark:text-gray-400">{new Date(post.created_at).toLocaleDateString()}</span>
                                     </div>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                        by <span className="font-medium text-indigo-600 dark:text-indigo-400">{post.profiles?.full_name}</span>
+                                        by <Link to={`/profile/${post.user_id || post.profiles?.id}`} className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+                                            {post.profiles?.full_name}
+                                        </Link>
                                     </p>
                                     <p className="mt-2 text-gray-800 dark:text-gray-200 text-sm line-clamp-3">{post.body}</p>
 

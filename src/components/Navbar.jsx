@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, Menu, X, Bell, Search, User, LogOut } from 'lucide-react';
+import { LogIn, Menu, X, Bell, Search } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 export default function Navbar() {
@@ -85,22 +85,6 @@ export default function Navbar() {
         }
     }
 
-    const handleLogout = async (e) => {
-        if (e) e.preventDefault();
-        try {
-            // Attempt local-only sign out to avoid network 404s if service is paused/down
-            const { error } = await supabase.auth.signOut({ scope: 'local' });
-            if (error) throw error;
-        } catch (error) {
-            console.warn('Network sign-out failed, clearing local session manually:', error);
-            // Fallback: Force clear local storage items related to Supabase
-            localStorage.clear(); // Simple brute force for this MVP to ensure logout
-        } finally {
-            setUser(null); // Force state update
-            navigate('/login', { replace: true });
-        }
-    };
-
     if (isHidden) return null;
 
     return (
@@ -169,13 +153,6 @@ export default function Navbar() {
                                         </div>
                                     )}
                                 </div>
-
-                                <Link to={`/profile/${user.id}`} className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                                    <User className="h-5 w-5" />
-                                </Link>
-                                <button onClick={handleLogout} className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                                    <LogOut className="h-5 w-5" />
-                                </button>
                             </>
                         ) : (
                             <Link to="/login" className="flex items-center text-gray-700 dark:text-gray-300 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">

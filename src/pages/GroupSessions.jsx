@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Users, Calendar, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function GroupSessions() {
     const navigate = useNavigate();
@@ -288,7 +288,9 @@ export default function GroupSessions() {
                                         <div className="flex-1">
                                             <h3 className="font-medium text-gray-900 dark:text-white">{session.skills?.title}</h3>
                                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                By: {session.provider?.full_name}
+                                                By: <Link to={`/profile/${session.provider_id}`} className="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">
+                                                    {session.provider?.full_name}
+                                                </Link>
                                             </p>
                                             <p className="text-xs text-gray-400 mt-1">
                                                 {isFull ? (
@@ -441,7 +443,9 @@ export default function GroupSessions() {
                                         <div className="flex flex-wrap gap-2 mb-3">
                                             {session.requests?.map(req => (
                                                 <span key={req.id} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
-                                                    {req.learner?.full_name}
+                                                    <Link to={`/profile/${req.learner_id}`} className="hover:underline">
+                                                        {req.learner?.full_name}
+                                                    </Link>
                                                 </span>
                                             ))}
                                             {(!session.requests || session.requests.length === 0) && (
@@ -449,15 +453,58 @@ export default function GroupSessions() {
                                             )}
                                         </div>
                                         <div className="flex space-x-2 mt-2">
-                                            <button
-                                                onClick={() => navigate(`/group-session/${session.id}`)}
-                                                className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm"
-                                            >
-                                                Start Class
-                                            </button>
+                                            {session.status === 'completed' ? (
+                                                <button
+                                                    disabled
+                                                    className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 px-4 py-2 rounded-md cursor-not-allowed text-sm"
+                                                >
+                                                    Class Completed
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => navigate(`/group-session/${session.id}`)}
+                                                    className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm"
+                                                >
+                                                    Start Class
+                                                </button>
+                                            )}
+
+                                            {/* End Session Button for List View */}
+                                            {session.status !== 'completed' && session.status !== 'cancelled' && (
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            // Update group session status
+                                                            const { error: sessionError } = await supabase
+                                                                .from('group_sessions')
+                                                                .update({ status: 'completed' })
+                                                                .eq('id', session.id);
+
+                                                            if (sessionError) throw sessionError;
+
+                                                            // Update all requests associated with this session to completed
+                                                            const { error: reqError } = await supabase
+                                                                .from('requests')
+                                                                .update({ status: 'completed' })
+                                                                .eq('group_session_id', session.id);
+
+                                                            if (reqError) throw reqError;
+
+                                                            alert('Session ended successfully.');
+                                                            fetchData(user.id); // Refresh list
+                                                        } catch (error) {
+                                                            console.error('Error ending session:', error);
+                                                            alert('Failed to end session');
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 transition-colors text-sm"
+                                                >
+                                                    End Session
+                                                </button>
+                                            )}
+
                                             <button
                                                 onClick={async () => {
-                                                    if (!window.confirm('Are you sure you want to delete this session? This action cannot be undone.')) return;
                                                     try {
                                                         const { error } = await supabase
                                                             .from('group_sessions')
@@ -495,7 +542,9 @@ export default function GroupSessions() {
                                             <div>
                                                 <h3 className="font-medium text-gray-900 dark:text-white">{session.skills?.title}</h3>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                    Hosted by: {session.provider?.full_name}
+                                                    Hosted by: <Link to={`/profile/${session.provider_id || session.provider?.id}`} className="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">
+                                                        {session.provider?.full_name}
+                                                    </Link>
                                                 </p>
                                                 {session.scheduled_at ? (
                                                     <div className="mt-2 text-sm">
@@ -543,7 +592,6 @@ export default function GroupSessions() {
                                             </button>
                                             <button
                                                 onClick={async () => {
-                                                    if (!window.confirm('Are you sure you want to leave this session?')) return;
                                                     try {
                                                         const { error } = await supabase
                                                             .from('requests')

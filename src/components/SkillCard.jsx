@@ -40,16 +40,20 @@ export default function SkillCard({ skill, showProvider = true, onBook }) {
                 {showProvider && skill.profiles && (
                     <div className="mt-4 flex items-center">
                         <div className="flex-shrink-0">
-                            {skill.profiles.avatar_url ? (
-                                <img className="h-8 w-8 rounded-full" src={skill.profiles.avatar_url} alt="" />
-                            ) : (
-                                <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                    <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                                </div>
-                            )}
+                            <Link to={`/profile/${skill.profiles.id}`}>
+                                {skill.profiles.avatar_url ? (
+                                    <img className="h-8 w-8 rounded-full" src={skill.profiles.avatar_url} alt="" />
+                                ) : (
+                                    <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                        <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                    </div>
+                                )}
+                            </Link>
                         </div>
                         <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{skill.profiles.full_name || 'Anonymous'}</p>
+                            <Link to={`/profile/${skill.profiles.id}`} className="hover:underline">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{skill.profiles.full_name || 'Anonymous'}</p>
+                            </Link>
                         </div>
                     </div>
                 )}

@@ -13,8 +13,8 @@ export default function History() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // Fetch requests where I am either learner or provider AND status is 'completed'
-            const { data, error } = await supabase
+            // 1. Fetch completed REQUESTS (One-on-one sessions OR as a learner in a group)
+            const { data: requestsData, error: reqError } = await supabase
                 .from('requests')
                 .select(`
                     *,
@@ -26,19 +26,63 @@ export default function History() {
                 .or(`provider_id.eq.${user.id},learner_id.eq.${user.id}`)
                 .order('created_at', { ascending: false });
 
-            if (error) {
-                console.error('Error fetching history:', error);
-            }
+            if (reqError) console.error('Error fetching request history:', reqError);
 
-            if (data) {
-                const mapped = data.map(session => {
+            // 2. Fetch completed GROUP SESSIONS (As a HOST)
+            // Requests only show up for learners. As a host, I need to see the sessions I created.
+            const { data: groupData, error: groupError } = await supabase
+                .from('group_sessions')
+                .select(`
+                    *,
+                    skills (title, description)
+                `)
+                .eq('provider_id', user.id)
+                .eq('status', 'completed')
+                .order('created_at', { ascending: false });
+
+            if (groupError) console.error('Error fetching group history:', groupError);
+
+            // 3. Merge and formatting
+            let combined = [];
+
+            if (requestsData) {
+                const mappedRequests = requestsData.map(session => {
                     const isProvider = session.provider_id === user.id;
                     const partner = isProvider ? session.learner : session.provider;
+                    // For group sessions joined as learner, partner is provider.
                     const role = isProvider ? 'Teaching' : 'Learning';
-                    return { ...session, partner, role };
+                    return {
+                        id: session.id,
+                        type: 'request',
+                        created_at: session.created_at,
+                        skill_title: session.skills?.title,
+                        role,
+                        partner,
+                        status: session.status
+                    };
                 });
-                setSessions(mapped);
+                combined = [...combined, ...mappedRequests];
             }
+
+            if (groupData) {
+                const mappedGroups = groupData.map(session => {
+                    return {
+                        id: session.id,
+                        type: 'group_session',
+                        created_at: session.created_at,
+                        skill_title: session.skills?.title,
+                        role: 'Teaching', // As a host of a group session
+                        partner: { full_name: 'Group Class' }, // No single partner
+                        status: session.status
+                    };
+                });
+                combined = [...combined, ...mappedGroups];
+            }
+
+            // sort by created_at desc
+            combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            setSessions(combined);
             setLoading(false);
         }
         fetchHistory();
@@ -70,13 +114,15 @@ export default function History() {
                                                 )}
                                             </div>
                                             <div className="ml-4">
-                                                <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 truncate">{session.skills.title}</div>
+                                                <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 truncate">{session.skill_title}</div>
                                                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full mr-2 ${session.role === 'Teaching' ? 'bg-indigo-100 text-indigo-800' : 'bg-green-100 text-green-800'
                                                         }`}>
                                                         {session.role}
                                                     </span>
-                                                    with {session.partner?.full_name}
+                                                    with <Link to={`/profile/${session.partner?.id || session.partner?.user_id}`} className="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">
+                                                        {session.partner?.full_name}
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </div>

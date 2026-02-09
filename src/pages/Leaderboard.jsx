@@ -96,11 +96,13 @@ export default function Leaderboard() {
                                             <div className="flex-shrink-0 mr-4 w-8 text-center flex justify-center">
                                                 {getRankIcon(index)}
                                             </div>
-                                            <img
-                                                className="h-12 w-12 rounded-full object-cover border-2 border-indigo-100 dark:border-gray-600"
-                                                src={leader.avatar_url || `https://ui-avatars.com/api/?name=${leader.full_name}&background=random`}
-                                                alt={leader.full_name}
-                                            />
+                                            <Link to={`/profile/${leader.id}`}>
+                                                <img
+                                                    className="h-12 w-12 rounded-full object-cover border-2 border-indigo-100 dark:border-gray-600"
+                                                    src={leader.avatar_url || `https://ui-avatars.com/api/?name=${leader.full_name}&background=random`}
+                                                    alt={leader.full_name}
+                                                />
+                                            </Link>
                                             <div className="ml-4 truncate">
                                                 <Link to={`/profile/${leader.id}`} className="text-lg font-medium text-indigo-600 dark:text-indigo-400 hover:underline truncate">
                                                     {leader.full_name}
