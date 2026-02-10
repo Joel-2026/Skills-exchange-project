@@ -309,8 +309,8 @@ function RequestsList({ session }) {
             .eq('learner_id', session.user.id)
             .order('created_at', { ascending: false });
 
-        setIncoming(inc ? inc.filter(r => r.status !== 'completed') : []);
-        setOutgoing(out ? out.filter(r => r.status !== 'completed') : []);
+        setIncoming(inc ? inc.filter(r => r.status !== 'completed' && r.status !== 'declined') : []);
+        setOutgoing(out ? out.filter(r => r.status !== 'completed' && r.status !== 'declined') : []);
         setLoading(false);
     }
 

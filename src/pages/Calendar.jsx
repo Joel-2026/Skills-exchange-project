@@ -143,6 +143,12 @@ export default function CalendarPage() {
         };
     };
 
+    const [date, setDate] = useState(new Date());
+    const [view, setView] = useState('month');
+
+    const onNavigate = (newDate) => setDate(newDate);
+    const onView = (newView) => setView(newView);
+
     return (
         <div className="h-[calc(100vh-64px)] p-6 bg-gray-50 dark:bg-gray-900">
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Your Schedule</h1>
@@ -160,6 +166,11 @@ export default function CalendarPage() {
                         style={{ height: '100%' }}
                         onSelectEvent={handleSelectEvent}
                         eventPropGetter={eventStyleGetter}
+                        date={date}
+                        onNavigate={onNavigate}
+                        view={view}
+                        onView={onView}
+                        views={['month', 'week', 'day', 'agenda']}
                     />
                 </div>
             )}
