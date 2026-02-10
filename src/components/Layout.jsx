@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import Footer from './Footer';
 
 export default function Layout({ children }) {
     const [user, setUser] = useState(null);
@@ -78,8 +79,11 @@ export default function Layout({ children }) {
             {/* If user is logged in, push content to right on desktop */}
             <div className={`flex flex-col min-h-screen transition-all duration-300 ${user ? 'md:pl-64' : ''}`}>
                 <Navbar />
-                <main className="flex-1 p-4 lg:p-8">
-                    {children}
+                <main className="flex-1 p-4 lg:p-8 flex flex-col">
+                    <div className="flex-1">
+                        {children}
+                    </div>
+                    <Footer />
                 </main>
             </div>
         </div>

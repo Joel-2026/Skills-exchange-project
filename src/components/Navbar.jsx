@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, Menu, X, Bell, Search } from 'lucide-react';
+import { LogIn, Menu, X, Bell, Search, SunMedium, MoonStar } from 'lucide-react';
+
+// ... (in component)
+
+
 import { supabase } from '../lib/supabaseClient';
 
 export default function Navbar() {
@@ -100,9 +104,9 @@ export default function Navbar() {
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
-                            className="p-1.5 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors"
+                            className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors"
                         >
-                            {theme === 'light' ? '🌙' : '☀️'}
+                            {theme === 'light' ? <MoonStar className="w-5 h-5" /> : <SunMedium className="w-5 h-5" />}
                         </button>
 
                         {user ? (

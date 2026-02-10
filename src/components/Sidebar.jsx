@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { LayoutDashboard, Search, BookOpen, History as HistoryIcon, User, PlusCircle, LogOut } from 'lucide-react';
+import { LayoutDashboard, Search, BookOpen, History as HistoryIcon, User, PlusCircle, LogOut, Calendar as CalendarIcon } from 'lucide-react';
 
 export default function Sidebar() {
     const location = useLocation();
@@ -85,15 +85,15 @@ export default function Sidebar() {
                         Explore Skills
                     </Link>
 
-
-
                     <Link
-                        to="/history"
-                        className={`${isActive('/history') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        to="/calendar"
+                        className={`${isActive('/calendar') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
                     >
-                        <HistoryIcon className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
-                        History
+                        <CalendarIcon className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        Calendar
                     </Link>
+
+
 
                     <Link
                         to="/add-skill"
@@ -103,7 +103,13 @@ export default function Sidebar() {
                         List Skill
                     </Link>
 
-                    {/* Profile Link Removed */}
+                    <Link
+                        to="/history"
+                        className={`${isActive('/history') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                    >
+                        <HistoryIcon className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        History
+                    </Link>
                 </nav>
             </div>
             <div className="flex-shrink-0 flex border-t border-white/10 p-4">

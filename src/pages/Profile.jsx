@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { User, Save, Plus, Award, Trash2, Paperclip } from 'lucide-react';
+import { User, Save, Plus, Award, Trash2, Paperclip, Star } from 'lucide-react';
+import StarRating from '../components/StarRating';
+import { ProfileSkeleton } from '../components/Skeleton';
 
 export default function Profile() {
     const { userId } = useParams(); // Get userId from URL if present
@@ -26,6 +28,11 @@ export default function Profile() {
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [groupSessions, setGroupSessions] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
+
+    // Reviews state
+    const [reviews, setReviews] = useState([]);
+    const [averageRating, setAverageRating] = useState(0);
+    const [badges, setBadges] = useState([]);
 
     useEffect(() => {
         async function getProfile() {
@@ -68,6 +75,28 @@ export default function Profile() {
                     .order('created_at', { ascending: false });
 
                 if (achievementsData) setAchievements(achievementsData);
+
+                // Fetch Reviews
+                const { data: reviewsData } = await supabase
+                    .from('reviews')
+                    .select('*, reviewer:reviewer_id(full_name, avatar_url)')
+                    .eq('target_id', targetUserId)
+                    .order('created_at', { ascending: false });
+
+                if (reviewsData) {
+                    setReviews(reviewsData);
+                    const total = reviewsData.reduce((acc, r) => acc + r.rating, 0);
+                    setAverageRating(reviewsData.length ? (total / reviewsData.length).toFixed(1) : 0);
+                }
+
+                // Fetch Badges
+                const { data: badgesData } = await supabase
+                    .from('user_badges')
+                    .select('*, badges(*)')
+                    .eq('user_id', targetUserId)
+                    .order('awarded_at', { ascending: false });
+
+                if (badgesData) setBadges(badgesData.map(ub => ub.badges));
 
                 // Fetch open group sessions (scheduled sessions with available spots)
                 // Removed explicit FK hint !public_group_sessions_provider_id_fkey
@@ -121,6 +150,21 @@ export default function Profile() {
             setIsAddingSkill(false);
             setNewSkill({ title: '', description: '', category: '', mode: 'online', max_students: 1 });
             alert('Skill added!');
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function deleteSkill(skillId) {
+        if (!confirm('Are you sure you want to delete this skill?')) return;
+        setLoading(true);
+        try {
+            const { error } = await supabase.from('skills').delete().eq('id', skillId);
+            if (error) throw error;
+            setMySkills(mySkills.filter(s => s.id !== skillId));
+            alert('Skill deleted!');
         } catch (error) {
             alert(error.message);
         } finally {
@@ -254,7 +298,7 @@ export default function Profile() {
         }
     }
 
-    if (loading) return <div className="p-8 text-center">Loading...</div>;
+    if (loading) return <ProfileSkeleton />;
 
     return (
         <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
@@ -276,8 +320,24 @@ export default function Profile() {
                     </div>
                     <div className="flex-1">
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{fullName || 'Anonymous User'}</h1>
+                        <div className="flex items-center space-x-2 mt-1">
+                            <StarRating rating={Math.round(averageRating)} readOnly size={16} />
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                {averageRating > 0 ? averageRating : 'New'} ({reviews.length} reviews)
+                            </span>
+                        </div>
                         {bio && (
                             <p className="mt-2 text-gray-600 dark:text-gray-300 whitespace-pre-line">{bio}</p>
+                        )}
+                        {badges.length > 0 && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                {badges.map(badge => (
+                                    <div key={badge.id} className="flex items-center bg-indigo-50 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 px-3 py-1 rounded-full text-xs border border-indigo-100 dark:border-indigo-800" title={badge.description}>
+                                        <Award className="w-3 h-3 mr-1" />
+                                        {badge.title}
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
                 </div>
@@ -490,9 +550,20 @@ export default function Profile() {
                                         <div className="bg-white dark:bg-gray-800 shadow rounded-md p-4 flex-1 border border-indigo-50 dark:border-gray-700 hover:border-indigo-100 transition-colors">
                                             <div className="flex justify-between items-start mb-2">
                                                 <h4 className="text-lg font-medium text-gray-900 dark:text-white truncate pr-2">{skill.title}</h4>
-                                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${skill.mode === 'online' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
-                                                    {skill.mode}
-                                                </span>
+                                                <div className="flex items-center space-x-2">
+                                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${skill.mode === 'online' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                                                        {skill.mode}
+                                                    </span>
+                                                    {isOwnProfile && (
+                                                        <button
+                                                            onClick={() => deleteSkill(skill.id)}
+                                                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                                                            title="Delete Skill"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                             <p className="text-xs text-indigo-500 dark:text-indigo-400 mb-2 uppercase tracking-wide">{skill.category}</p>
                                             <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3">{skill.description}</p>
@@ -701,6 +772,64 @@ export default function Profile() {
                     </div>
                 </>
             )}
+
+            {/* Reviews Section */}
+            <div className="hidden sm:block" aria-hidden="true">
+                <div className="py-5">
+                    <div className="border-t border-gray-200" />
+                </div>
+            </div>
+
+            <div className="md:grid md:grid-cols-3 md:gap-6 pb-10">
+                <div className="md:col-span-1">
+                    <div className="px-4 sm:px-0">
+                        <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">Reviews</h3>
+                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            What others say.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mt-5 md:mt-0 md:col-span-2">
+                    {reviews.length === 0 ? (
+                        <div className="text-gray-500 dark:text-gray-400 text-center py-4 bg-white dark:bg-gray-800 shadow rounded-md border border-gray-100 dark:border-gray-700">
+                            No reviews yet.
+                        </div>
+                    ) : (
+                        <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700">
+                            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                                {reviews.map(review => (
+                                    <li key={review.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                        <div className="flex space-x-3">
+                                            <div className="flex-shrink-0">
+                                                {review.reviewer?.avatar_url ? (
+                                                    <img className="h-10 w-10 rounded-full" src={review.reviewer.avatar_url} alt="" />
+                                                ) : (
+                                                    <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                                                        <User className="h-6 w-6 text-gray-400" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 space-y-1">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">{review.reviewer?.full_name || 'User'}</h3>
+                                                    <p className="text-sm text-gray-500">{new Date(review.created_at).toLocaleDateString()}</p>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <StarRating rating={review.rating} readOnly size={14} />
+                                                </div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-300">
+                                                    {review.comment}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

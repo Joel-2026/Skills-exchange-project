@@ -2,6 +2,7 @@
 import React from 'react';
 import { Clock, MapPin, Monitor, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import StarRating from './StarRating';
 
 export default function SkillCard({ skill, showProvider = true, onBook }) {
     const isOnline = skill.mode === 'online';
@@ -23,15 +24,28 @@ export default function SkillCard({ skill, showProvider = true, onBook }) {
                         </span>
                     )}
                     <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                        {skill.mode === 'online' ? <Monitor className="w-3 h-3 mr-1" /> : <MapPin className="w-3 h-3 mr-1" />}
-                        {skill.mode}
+                        {skill.mode === 'online' ? (
+                            <>
+                                <Monitor className="w-3 h-3 mr-1" />
+                                {skill.mode}
+                            </>
+                        ) : (
+                            <>
+                                <MapPin className="w-3 h-3 mr-1" />
+                                <span className="truncate max-w-[100px]" title={skill.location || 'In-Person'}>
+                                    {skill.location || 'In-Person'}
+                                </span>
+                            </>
+                        )}
                     </span>
                 </div>
 
                 <div className="mt-4">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate" title={skill.title}>
-                        {skill.title}
-                    </h3>
+                    <Link to={`/skill/${skill.id}`} className="block group">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" title={skill.title}>
+                            {skill.title}
+                        </h3>
+                    </Link>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2" title={skill.description}>
                         {skill.description}
                     </p>
@@ -54,20 +68,32 @@ export default function SkillCard({ skill, showProvider = true, onBook }) {
                             <Link to={`/profile/${skill.profiles.id}`} className="hover:underline">
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">{skill.profiles.full_name || 'Anonymous'}</p>
                             </Link>
+                            {skill.averageRating > 0 && (
+                                <div className="flex items-center mt-0.5">
+                                    <StarRating rating={skill.averageRating} readOnly={true} size={12} />
+                                    <span className="ml-1 text-xs text-gray-400">({skill.reviewCount})</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
             </div>
-            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3 flex space-x-2">
+                <Link
+                    to={`/skill/${skill.id}`}
+                    className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
+                >
+                    View
+                </Link>
                 {onBook ? (
                     <button
                         onClick={() => onBook(skill)}
-                        className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white btn-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                        className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white btn-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                     >
-                        Request Session (1 Credit)
+                        Request
                     </button>
                 ) : (
-                    <div className="text-sm text-gray-400 italic text-center">Managed in Profile</div>
+                    <div className="flex-1 text-sm text-gray-400 italic text-center flex items-center justify-center">Managed</div>
                 )}
             </div>
         </div>

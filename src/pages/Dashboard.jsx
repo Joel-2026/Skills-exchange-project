@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';  // Import useNavigate
 import { supabase } from '../lib/supabaseClient';
 import { Clock, BookOpen, PlusCircle, Users } from 'lucide-react';
+import { DashboardSkeleton } from '../components/Skeleton';
+import { checkAndAwardBadges } from '../lib/gamification';
 
 export default function Dashboard() {
     const [session, setSession] = useState(null);
@@ -11,7 +13,10 @@ export default function Dashboard() {
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
-            if (session) getProfile(session.user.id);
+            if (session) {
+                getProfile(session.user.id);
+                checkAndAwardBadges(session.user.id); // Check for badges in background
+            }
         });
     }, []);
 
@@ -67,7 +72,7 @@ export default function Dashboard() {
         }
     }
 
-    if (loading) return <div className="p-8 text-center">Loading...</div>;
+    if (loading) return <DashboardSkeleton />;
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -176,7 +181,7 @@ export default function Dashboard() {
             <div className="mb-8">
                 <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Browse by Category</h3>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                    {['Technology', 'Music', 'Language', 'Lifestyle', 'Business', 'Academics'].map((category) => (
+                    {['Technology', 'Music', 'Language', 'Lifestyle', 'Business', 'Academics', 'Design', 'Marketing', 'Health & Fitness', 'Cooking', 'Art', 'Finance'].map((category) => (
                         <Link
                             key={category}
                             to={`/search?category=${category}`}
@@ -293,14 +298,14 @@ function RequestsList({ session }) {
         // Fetch Incoming (I am the Provider)
         const { data: inc } = await supabase
             .from('requests')
-            .select('*, skills(title), profiles:learner_id(full_name)')
+            .select('*, skills(title, mode, location), profiles:learner_id(full_name)')
             .eq('provider_id', session.user.id)
             .order('created_at', { ascending: false });
 
         // Fetch Outgoing (I am the Learner)
         const { data: out } = await supabase
             .from('requests')
-            .select('*, skills(title), profiles:provider_id(full_name)')
+            .select('*, skills(title, mode, location), profiles:provider_id(full_name)')
             .eq('learner_id', session.user.id)
             .order('created_at', { ascending: false });
 
@@ -382,6 +387,9 @@ function RequestsList({ session }) {
                                 <li key={req.id} className="py-4">
                                     <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">{req.skills.title}</p>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">Learner: <Link to={`/profile/${req.learner_id}`} className="text-indigo-600 dark:text-indigo-400 hover:underline">{req.profiles.full_name}</Link></p>
+                                    {req.skills.mode === 'offline' && req.skills.location && (
+                                        <p className="text-xs text-gray-400 mb-1">📍 {req.skills.location}</p>
+                                    )}
                                     <p className="text-xs text-gray-400 mb-2">Status: {getStatusBadge(req.status)}</p>
 
                                     {req.status === 'pending' && (
@@ -428,6 +436,9 @@ function RequestsList({ session }) {
                                 <li key={req.id} className="py-4">
                                     <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">{req.skills.title}</p>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">Teacher: <Link to={`/profile/${req.provider_id}`} className="text-indigo-600 dark:text-indigo-400 hover:underline">{req.profiles.full_name}</Link></p>
+                                    {req.skills.mode === 'offline' && req.skills.location && (
+                                        <p className="text-xs text-gray-400 mb-1">📍 {req.skills.location}</p>
+                                    )}
                                     <p className="text-xs text-gray-400">Status: {getStatusBadge(req.status)}</p>
                                     {req.status === 'accepted' && (
                                         <div className="flex space-x-2 mt-2">

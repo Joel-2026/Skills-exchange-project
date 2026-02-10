@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import SkillCard from '../components/SkillCard';
 import { Search as SearchIcon, Filter } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import Spinner from '../components/Spinner';
 
 export default function Search() {
     const [skills, setSkills] = useState([]);
@@ -21,7 +22,11 @@ export default function Search() {
 
     const navigate = useNavigate();
 
-    const CATEGORIES = ['All', 'Technology', 'Music', 'Language', 'Lifestyle', 'Business', 'Academics'];
+    const CATEGORIES = [
+        'All', 'Technology', 'Music', 'Language', 'Lifestyle', 'Business', 'Academics',
+        'Design', 'Marketing', 'Health & Fitness', 'Cooking', 'Art', 'Finance',
+        'Personal Development', 'DIY & Crafts'
+    ];
 
     useEffect(() => {
         fetchSkills();
@@ -30,6 +35,9 @@ export default function Search() {
 
     async function fetchSkills() {
         setLoading(true);
+
+        const { data: { user } } = await supabase.auth.getUser();
+
         let query = supabase
             .from('skills')
             .select(`
@@ -41,11 +49,45 @@ export default function Search() {
       `)
             .order('created_at', { ascending: false });
 
+        if (user) {
+            query = query.neq('provider_id', user.id);
+        }
+
         const { data, error } = await query;
         if (error) {
             console.error('Error fetching skills:', error);
         } else {
-            setSkills(data);
+            // Fetch ratings for these providers
+            if (data && data.length > 0) {
+                const providerIds = [...new Set(data.map(s => s.provider_id))];
+                const { data: reviews } = await supabase
+                    .from('reviews')
+                    .select('target_id, rating')
+                    .in('target_id', providerIds);
+
+                const ratingsMap = {};
+                if (reviews) {
+                    reviews.forEach(r => {
+                        if (!ratingsMap[r.target_id]) {
+                            ratingsMap[r.target_id] = { total: 0, count: 0 };
+                        }
+                        ratingsMap[r.target_id].total += r.rating;
+                        ratingsMap[r.target_id].count += 1;
+                    });
+                }
+
+                const skillsWithRatings = data.map(skill => {
+                    const ratingData = ratingsMap[skill.provider_id];
+                    return {
+                        ...skill,
+                        averageRating: ratingData ? ratingData.total / ratingData.count : 0,
+                        reviewCount: ratingData ? ratingData.count : 0
+                    };
+                });
+                setSkills(skillsWithRatings);
+            } else {
+                setSkills([]);
+            }
         }
         setLoading(false);
     }
@@ -142,7 +184,7 @@ export default function Search() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col md:flex-row gap-8">
 
                 {/* Sidebar Filters */}
@@ -180,23 +222,30 @@ export default function Search() {
                         {/* Category Filter */}
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
-                            <div className="space-y-2">
+                            <select
+                                value={filterCategory}
+                                onChange={(e) => setFilterCategory(e.target.value)}
+                                className="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            >
                                 {CATEGORIES.map(cat => (
-                                    <div key={cat} className="flex items-center">
-                                        <input
-                                            id={`cat-${cat}`}
-                                            name="category"
-                                            type="radio"
-                                            checked={filterCategory === cat}
-                                            onChange={() => setFilterCategory(cat)}
-                                            className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                                        />
-                                        <label htmlFor={`cat-${cat}`} className="ml-3 block text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                                            {cat}
-                                        </label>
-                                    </div>
+                                    <option key={cat} value={cat}>{cat}</option>
                                 ))}
-                            </div>
+                            </select>
+                        </div>
+
+                        {/* Proficiency Filter */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Proficiency</label>
+                            <select
+                                value={filterProficiency}
+                                onChange={(e) => setFilterProficiency(e.target.value)}
+                                className="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            >
+                                <option value="all">Any Level</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
                         </div>
 
                         {/* Mode Filter */}
@@ -235,7 +284,7 @@ export default function Search() {
                     </div>
 
                     {loading ? (
-                        <div className="text-center py-12 dark:text-gray-300">Loading skills...</div>
+                        <Spinner size="lg" />
                     ) : filteredSkills.length === 0 ? (
                         <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
                             <SearchIcon className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600" />

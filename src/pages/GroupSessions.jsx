@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Users, Calendar, CheckCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import Spinner from '../components/Spinner';
 
 export default function GroupSessions() {
     const navigate = useNavigate();
@@ -173,7 +174,7 @@ export default function GroupSessions() {
         }
     }
 
-    if (loading) return <div className="p-8 text-center">Loading...</div>;
+    if (loading) return <Spinner size="lg" />;
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Link } from 'react-router-dom';
 import { Award, Star, Trophy, Medal } from 'lucide-react';
+import Spinner from '../components/Spinner';
 
 export default function Leaderboard() {
     const [leaders, setLeaders] = useState([]);
@@ -80,7 +81,7 @@ export default function Leaderboard() {
             </div>
 
             {loading ? (
-                <div className="text-center py-12 dark:text-gray-300">Loading ranks...</div>
+                <Spinner size="lg" />
             ) : leaders.length === 0 ? (
                 <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
                     <p className="text-gray-500 dark:text-gray-400">No completed sessions yet. Be the first!</p>

@@ -3,15 +3,34 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
+import ReviewModal from '../components/ReviewModal';
+import Spinner from '../components/Spinner';
 
 export default function History() {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [reviewsWritten, setReviewsWritten] = useState(new Set()); // IDs of sessions reviewed
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [selectedSession, setSelectedSession] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [mainError, setMainError] = useState(null);
 
     useEffect(() => {
         async function fetchHistory() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
+            setCurrentUser(user);
+
+            // Fetch reviews I've written to know what buttons to hide
+            const { data: myReviews } = await supabase
+                .from('reviews')
+                .select('session_id')
+                .eq('reviewer_id', user.id);
+
+            if (myReviews) {
+                const reviewedSessionIds = new Set(myReviews.map(r => r.session_id));
+                setReviewsWritten(reviewedSessionIds);
+            }
 
             // 1. Fetch completed REQUESTS (One-on-one sessions OR as a learner in a group)
             const { data: requestsData, error: reqError } = await supabase
@@ -19,14 +38,18 @@ export default function History() {
                 .select(`
                     *,
                     skills (title, description),
-                    provider:profiles!public_requests_provider_id_fkey (full_name, avatar_url),
-                    learner:profiles!public_requests_learner_id_fkey (full_name, avatar_url)
+                    provider:profiles!requests_provider_id_fkey (id, full_name, avatar_url),
+                    learner:profiles!requests_learner_id_fkey (id, full_name, avatar_url)
                 `)
-                .eq('status', 'completed')
+                // .neq('status', 'pending') // REMOVED FOR DEBUGGING
+                // .neq('status', 'accepted') // REMOVED FOR DEBUGGING
                 .or(`provider_id.eq.${user.id},learner_id.eq.${user.id}`)
                 .order('created_at', { ascending: false });
 
-            if (reqError) console.error('Error fetching request history:', reqError);
+            if (reqError) {
+                console.error('Error fetching request history:', reqError);
+                setMainError(reqError);
+            }
 
             // 2. Fetch completed GROUP SESSIONS (As a HOST)
             // Requests only show up for learners. As a host, I need to see the sessions I created.
@@ -88,7 +111,7 @@ export default function History() {
         fetchHistory();
     }, []);
 
-    if (loading) return <div className="p-8 text-center">Loading history...</div>;
+    if (loading) return <Spinner size="lg" />;
 
     return (
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -96,7 +119,31 @@ export default function History() {
 
             {sessions.length === 0 ? (
                 <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow transition-colors">
-                    <p className="text-gray-500 dark:text-gray-400">No completed classes yet.</p>
+                    <p className="text-gray-500 dark:text-gray-400">No classes found (pending, active, or completed).</p>
+                    <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded text-xs text-left overflow-auto">
+                        <p className="font-bold">Debug Info:</p>
+                        <p>User ID: {currentUser?.id}</p>
+                        <p>Requests Found (Complex Query): {sessions.length}</p>
+                        {mainError && (
+                            <div className="text-red-500 font-bold my-2">
+                                Query Error: {mainError.message}
+                                <br />
+                                Hint: {mainError.hint || 'No hint'}
+                            </div>
+                        )}
+                        <button
+                            onClick={async () => {
+                                const { count, error } = await supabase
+                                    .from('requests')
+                                    .select('*', { count: 'exact', head: true })
+                                    .or(`provider_id.eq.${currentUser.id},learner_id.eq.${currentUser.id}`);
+                                alert(`Raw Request Count in DB for you: ${count} (Error: ${error?.message})`);
+                            }}
+                            className="mt-2 text-indigo-500 underline"
+                        >
+                            Check Database Raw Count
+                        </button>
+                    </div>
                 </div>
             ) : (
                 <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md transition-colors">
@@ -123,19 +170,37 @@ export default function History() {
                                                     with <Link to={`/profile/${session.partner?.id || session.partner?.user_id}`} className="hover:underline hover:text-indigo-600 dark:hover:text-indigo-400">
                                                         {session.partner?.full_name}
                                                     </Link>
+                                                    <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                        ${session.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                            session.status === 'cancelled' ? 'bg-gray-100 text-gray-800' :
+                                                                'bg-red-100 text-red-800'}`}>
+                                                        {session.status}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end">
                                             <div className="text-sm text-gray-500">
-                                                Completed on {new Date(session.created_at).toLocaleDateString()}
+                                                {new Date(session.created_at).toLocaleDateString()}
                                             </div>
-                                            {/* Placeholder for future Review feature */}
-                                            {session.role === 'Learning' && (
-                                                <button className="mt-1 flex items-center text-xs text-yellow-600 hover:text-yellow-700">
+                                            {/* Review Button */}
+                                            {session.partner?.id && !reviewsWritten.has(session.id) && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedSession(session);
+                                                        setReviewModalOpen(true);
+                                                    }}
+                                                    className="mt-1 flex items-center text-xs text-yellow-600 hover:text-yellow-700 bg-yellow-50 px-2 py-1 rounded border border-yellow-200"
+                                                >
                                                     <Star className="w-3 h-3 mr-1" />
-                                                    Leave Review
+                                                    Rate {session.role === 'Learning' ? 'Teacher' : 'Student'}
                                                 </button>
+                                            )}
+                                            {session.partner?.id && reviewsWritten.has(session.id) && (
+                                                <span className="mt-1 flex items-center text-xs text-green-600">
+                                                    <Star className="w-3 h-3 mr-1 fill-green-600" />
+                                                    Reviewed
+                                                </span>
                                             )}
                                         </div>
                                     </div>
@@ -145,6 +210,18 @@ export default function History() {
                     </ul>
                 </div>
             )}
+
+            <ReviewModal
+                isOpen={reviewModalOpen}
+                onClose={() => setReviewModalOpen(false)}
+                reviewerId={currentUser?.id}
+                targetId={selectedSession?.partner?.id || selectedSession?.partner?.user_id} // Make sure to get correct ID
+                sessionId={selectedSession?.id}
+                targetName={selectedSession?.partner?.full_name}
+                onReviewSubmitted={() => {
+                    setReviewsWritten(prev => new Set(prev).add(selectedSession.id));
+                }}
+            />
         </div>
     );
 }

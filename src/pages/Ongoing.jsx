@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Link } from 'react-router-dom';
-import { Video, MessageSquare, CheckCircle } from 'lucide-react';
+import { Video, MessageSquare, CheckCircle, MapPin } from 'lucide-react';
+
 
 export default function Ongoing() {
     const [sessions, setSessions] = useState([]);
@@ -21,7 +22,7 @@ export default function Ongoing() {
             .from('requests')
             .select(`
                 *,
-                skills (title, description),
+                skills (title, description, mode, location),
                 provider:profiles!public_requests_provider_id_fkey (full_name, avatar_url, credits),
                 learner:profiles!public_requests_learner_id_fkey (full_name, avatar_url, credits)
             `)
@@ -103,7 +104,7 @@ export default function Ongoing() {
         }
     }
 
-    if (loading) return <div className="p-8 text-center">Loading ongoing sessions...</div>;
+    if (loading) return <Spinner size="lg" />;
 
     return (
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -136,6 +137,12 @@ export default function Ongoing() {
                                 <h3 className="text-lg font-medium text-gray-900 truncate" title={session.skills.title}>
                                     {session.skills.title}
                                 </h3>
+                                {session.skills.mode === 'offline' && session.skills.location && (
+                                    <p className="mt-1 text-xs text-gray-500 flex items-center">
+                                        <MapPin className="w-3 h-3 mr-1" />
+                                        {session.skills.location}
+                                    </p>
+                                )}
                                 <div className="mt-4 flex items-center">
                                     <div className="flex-shrink-0">
                                         <Link to={`/profile/${session.partner?.id}`}>
