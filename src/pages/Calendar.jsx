@@ -170,7 +170,7 @@ export default function CalendarPage() {
                         onNavigate={onNavigate}
                         view={view}
                         onView={onView}
-                        views={['month', 'week', 'day', 'agenda']}
+                        views={['month', 'week', 'day']}
                     />
                 </div>
             )}

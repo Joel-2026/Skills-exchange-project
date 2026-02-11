@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { User, Save, Plus, Award, Trash2, Paperclip, Star } from 'lucide-react';
+import { User, Save, Plus, Award, Trash2, Paperclip, Star, X, Check } from 'lucide-react';
 import StarRating from '../components/StarRating';
 import { ProfileSkeleton } from '../components/Skeleton';
+import ImageCropper from '../components/ImageCropper';
 
 export default function Profile() {
     const { userId } = useParams(); // Get userId from URL if present
@@ -28,6 +29,10 @@ export default function Profile() {
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [groupSessions, setGroupSessions] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
+
+    // Cropping state
+    const [cropImageSrc, setCropImageSrc] = useState(null);
+    const [isCropping, setIsCropping] = useState(false);
 
     // Reviews state
     const [reviews, setReviews] = useState([]);
@@ -205,20 +210,34 @@ export default function Profile() {
     }
 
     async function uploadAvatar(event) {
+        if (!event.target.files || event.target.files.length === 0) {
+            return;
+        }
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            setCropImageSrc(reader.result);
+            setIsCropping(true);
+        });
+        reader.readAsDataURL(file);
+        // Reset the input so the same file can be selected again if needed
+        event.target.value = null;
+    }
+
+    async function onCropComplete(croppedBlob) {
         try {
             setIsUploadingAvatar(true);
-            if (!event.target.files || event.target.files.length === 0) {
-                throw new Error('You must select an image to upload.');
-            }
+            setIsCropping(false); // Close cropper
 
-            const file = event.target.files[0];
-            const fileExt = file.name.split('.').pop();
+            const fileExt = 'jpeg'; // cropped image is jpeg
             const fileName = `${user.id}-${Math.random()}.${fileExt}`;
             const filePath = `${fileName}`;
 
             let { error: uploadError } = await supabase.storage
                 .from('avatars')
-                .upload(filePath, file);
+                .upload(filePath, croppedBlob, {
+                    contentType: 'image/jpeg'
+                });
 
             if (uploadError) {
                 throw uploadError;
@@ -233,7 +252,13 @@ export default function Profile() {
             alert(error.message);
         } finally {
             setIsUploadingAvatar(false);
+            setCropImageSrc(null);
         }
+    }
+
+    function onCropCancel() {
+        setIsCropping(false);
+        setCropImageSrc(null);
     }
 
     async function addAchievement() {
@@ -302,6 +327,13 @@ export default function Profile() {
 
     return (
         <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+            {isCropping && cropImageSrc && (
+                <ImageCropper
+                    imageSrc={cropImageSrc}
+                    onCropComplete={onCropComplete}
+                    onCancel={onCropCancel}
+                />
+            )}
             {/* Profile Header with Avatar */}
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-8 p-6 transition-colors">
                 <div className="flex items-center space-x-6">

@@ -50,7 +50,7 @@ export default function SkillCard({ skill, showProvider = true, onBook }) {
     return (
 
         <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-all border border-gray-100 dark:border-gray-700 relative group">
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-12 right-4 z-10">
                 <button
                     onClick={toggleSave}
                     className={`p-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-sm backdrop-blur-sm transition-colors ${isSaved ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
@@ -61,18 +61,15 @@ export default function SkillCard({ skill, showProvider = true, onBook }) {
 
             <div className="p-5">
                 <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                         {skill.category || 'General'}
                     </span>
                     {skill.proficiency && (
-                        <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                            ${skill.proficiency === 'Advanced' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
-                                skill.proficiency === 'Intermediate' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'}`}>
+                        <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
                             {skill.proficiency}
                         </span>
                     )}
-                    <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                         {skill.mode === 'online' ? (
                             <>
                                 <Monitor className="w-3 h-3 mr-1" />

@@ -1,11 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { LayoutDashboard, Search, BookOpen, History as HistoryIcon, User, PlusCircle, LogOut, Calendar as CalendarIcon, Heart, MessageSquare, Trophy } from 'lucide-react';
 
 export default function Sidebar() {
     const location = useLocation();
+    const navigate = useNavigate();
     const [user, setUser] = useState(null);
 
     const [profile, setProfile] = useState(null);
@@ -105,6 +106,10 @@ export default function Sidebar() {
 
                     <Link
                         to="/leaderboard"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            navigate('/leaderboard', { state: { refresh: Date.now() } });
+                        }}
                         className={`${isActive('/leaderboard') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
                     >
                         <Trophy className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />

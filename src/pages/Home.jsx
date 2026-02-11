@@ -27,19 +27,12 @@ export default function Home() {
                     <div className="rounded-md shadow">
                         <Link
                             to="/login"
-                            className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white btn-primary md:py-4 md:text-lg md:px-10"
+                            className="w-full flex items-center justify-center px-10 py-3 border border-transparent text-base font-medium rounded-md text-white btn-primary md:py-4 md:text-lg md:px-12 min-w-[200px]"
                         >
                             Get Started
                         </Link>
                     </div>
-                    <div>
-                        <Link
-                            to="/search"
-                            className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 dark:bg-gray-800 dark:text-indigo-400 dark:hover:bg-gray-700 md:py-4 md:text-lg md:px-10 transition-colors"
-                        >
-                            Browse Skills
-                        </Link>
-                    </div>
+
                 </div>
             </div>
         </div>

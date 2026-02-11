@@ -1,14 +1,34 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Award, Star, Trophy, Medal } from 'lucide-react';
 import Spinner from '../components/Spinner';
+
+import useWindowSize from 'react-use/lib/useWindowSize';
+import Confetti from 'react-confetti';
 
 export default function Leaderboard() {
     const [activeTab, setActiveTab] = useState('teachers'); // 'teachers', 'earners', 'referrers'
     const [leaders, setLeaders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const location = useLocation();
+    const { width, height } = useWindowSize();
+    const [showConfetti, setShowConfetti] = useState(true);
+    const [fadeOut, setFadeOut] = useState(false);
+
+    useEffect(() => {
+        // Reset animation states
+        setShowConfetti(true);
+        setFadeOut(false);
+
+        const fadeTimer = setTimeout(() => setFadeOut(true), 4000); // Start fading after 4 seconds
+        const removeTimer = setTimeout(() => setShowConfetti(false), 5000); // Remove after 5 seconds (1s fade)
+        return () => {
+            clearTimeout(fadeTimer);
+            clearTimeout(removeTimer);
+        };
+    }, [activeTab, location.key]);
 
     useEffect(() => {
         calculateLeaderboard();
@@ -111,7 +131,28 @@ export default function Leaderboard() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+            {showConfetti && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 100,
+                    pointerEvents: 'none',
+                    opacity: fadeOut ? 0 : 1,
+                    transition: 'opacity 1s ease-out'
+                }}>
+                    <Confetti
+                        width={width}
+                        height={height}
+                        recycle={false}
+                        numberOfPieces={500}
+                        gravity={0.2}
+                    />
+                </div>
+            )}
             <div className="text-center mb-10">
                 <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl text-gradient-primary inline-block">
                     Community Leaderboard
@@ -126,8 +167,8 @@ export default function Leaderboard() {
                 <button
                     onClick={() => setActiveTab('teachers')}
                     className={`px-4 py-2 rounded-full font-medium transition-colors ${activeTab === 'teachers'
-                            ? 'bg-indigo-600 text-white shadow-lg'
-                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        ? 'bg-indigo-600 text-white shadow-lg'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                 >
                     Top Teachers
@@ -135,8 +176,8 @@ export default function Leaderboard() {
                 <button
                     onClick={() => setActiveTab('earners')}
                     className={`px-4 py-2 rounded-full font-medium transition-colors ${activeTab === 'earners'
-                            ? 'bg-indigo-600 text-white shadow-lg'
-                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        ? 'bg-indigo-600 text-white shadow-lg'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                 >
                     Top Earners
@@ -144,8 +185,8 @@ export default function Leaderboard() {
                 <button
                     onClick={() => setActiveTab('referrers')}
                     className={`px-4 py-2 rounded-full font-medium transition-colors ${activeTab === 'referrers'
-                            ? 'bg-indigo-600 text-white shadow-lg'
-                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        ? 'bg-indigo-600 text-white shadow-lg'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                 >
                     Top Referrers
@@ -185,8 +226,8 @@ export default function Leaderboard() {
                                         </div>
                                         <div className="flex flex-col items-end">
                                             <div className={`px-3 py-1 rounded-full text-sm font-semibold ${activeTab === 'teachers' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                                                    activeTab === 'earners' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                                                        'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                                                activeTab === 'earners' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                                                    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                                                 }`}>
                                                 {leader.score} {leader.metric}
                                             </div>
