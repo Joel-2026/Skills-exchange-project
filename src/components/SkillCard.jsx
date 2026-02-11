@@ -1,15 +1,64 @@
-
-import React from 'react';
-import { Clock, MapPin, Monitor, User } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+import { Clock, MapPin, Monitor, User, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StarRating from './StarRating';
+import { useState, useEffect } from 'react';
 
 export default function SkillCard({ skill, showProvider = true, onBook }) {
     const isOnline = skill.mode === 'online';
+    const [isSaved, setIsSaved] = useState(false);
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        checkUserAndSavedStatus();
+    }, [skill.id]);
+
+    async function checkUserAndSavedStatus() {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+        if (user) {
+            const { data } = await supabase
+                .from('saved_skills')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('skill_id', skill.id)
+                .single();
+            setIsSaved(!!data);
+        }
+    }
+
+    async function toggleSave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!user) return alert('Please login to save skills.');
+
+        if (isSaved) {
+            const { error } = await supabase
+                .from('saved_skills')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('skill_id', skill.id);
+            if (!error) setIsSaved(false);
+        } else {
+            const { error } = await supabase
+                .from('saved_skills')
+                .insert([{ user_id: user.id, skill_id: skill.id }]);
+            if (!error) setIsSaved(true);
+        }
+    }
 
     return (
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-all border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-all border border-gray-100 dark:border-gray-700 relative group">
+            <div className="absolute top-4 right-4 z-10">
+                <button
+                    onClick={toggleSave}
+                    className={`p-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-sm backdrop-blur-sm transition-colors ${isSaved ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                >
+                    <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+                </button>
+            </div>
+
             <div className="p-5">
                 <div className="flex items-center justify-between">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">

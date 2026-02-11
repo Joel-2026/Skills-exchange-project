@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, Menu, X, Bell, Search, SunMedium, MoonStar } from 'lucide-react';
+import { LogIn, Bell, SunMedium, MoonStar } from 'lucide-react';
 
 // ... (in component)
 
@@ -111,16 +111,8 @@ export default function Navbar() {
 
                         {user ? (
                             <>
-                                <Link to="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</Link>
-                                <Link to="/search" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
-                                    <Search className="w-4 h-4 mr-1" /> Explore
-                                </Link>
-                                <Link to="/forum" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                                    Forum
-                                </Link>
-                                <Link to="/leaderboard" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                                    Leaderboard
-                                </Link>
+
+
 
                                 {/* Notification Bell */}
                                 <div className="relative">

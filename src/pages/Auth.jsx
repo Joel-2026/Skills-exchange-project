@@ -12,6 +12,14 @@ export default function Auth() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
+    // Check for referral code on mount to switch to Sign Up
+    React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('ref')) {
+            setIsSignUp(true);
+        }
+    }, []);
+
     const handleSocialLogin = async (provider) => {
         setLoading(true);
         const { error } = await supabase.auth.signInWithOAuth({
@@ -33,9 +41,18 @@ export default function Auth() {
 
         try {
             if (isSignUp) {
+                // Check if there is a referral in query params
+                const params = new URLSearchParams(window.location.search);
+                const referralCode = params.get('ref');
+
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
+                    options: {
+                        data: {
+                            referral_code: referralCode // Pass to metadata for trigger
+                        }
+                    }
                 });
                 if (error) throw error;
                 alert('Check your email for the login link!');

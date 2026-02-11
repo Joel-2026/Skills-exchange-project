@@ -129,7 +129,9 @@ export default function Forum() {
                                 </Link>
                                 <div className="ml-4 flex-1">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">{post.title}</h3>
+                                        <Link to={`/forum/${post.id}`} className="hover:underline">
+                                            <h3 className="text-lg font-medium text-gray-900 dark:text-white">{post.title}</h3>
+                                        </Link>
                                         <span className="text-sm text-gray-500 dark:text-gray-400">{new Date(post.created_at).toLocaleDateString()}</span>
                                     </div>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">

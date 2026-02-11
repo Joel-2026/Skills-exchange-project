@@ -19,6 +19,9 @@ import GroupSessions from './pages/GroupSessions';
 import CalendarPage from './pages/Calendar';
 import DebugHistory from './pages/DebugHistory';
 import About from './pages/About';
+import PostDetails from './pages/PostDetails';
+import SavedSkills from './pages/SavedSkills';
+import Settings from './pages/Settings';
 
 import NotFound from './pages/NotFound';
 
@@ -32,6 +35,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/search" element={<Search />} />
+          <Route path="/saved-skills" element={<SavedSkills />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/:userId" element={<Profile />} />
           <Route path="/add-skill" element={<AddSkill />} />
@@ -42,9 +46,11 @@ function App() {
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/forum" element={<Forum />} />
+          <Route path="/forum/:postId" element={<PostDetails />} />
           <Route path="/group-sessions" element={<GroupSessions />} />
           <Route path="/group-session/:sessionId" element={<SessionRoom />} />
           <Route path="/about" element={<About />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/debug-history" element={<DebugHistory />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

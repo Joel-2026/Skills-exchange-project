@@ -63,6 +63,54 @@ export default function SessionRoom() {
         loadData();
     }, [requestId, sessionId, isGroupSession, navigate]);
 
+    // 3. Notify Partner on Join (with debounce check)
+    useEffect(() => {
+        if (!user || !session) return;
+
+        const notifyPartner = async () => {
+            // Determine partner ID
+            const partnerId = isGroupSession
+                ? session.provider_id
+                : (user.id === session.learner_id ? session.skills?.provider_id : session.learner_id);
+
+            // Don't notify yourself
+            if (user.id === partnerId) return;
+
+            // Check if we already notified them recently (last 5 mins)
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+            const { data: recentNotifs } = await supabase
+                .from('notifications')
+                .select('id')
+                .eq('user_id', partnerId)
+                .ilike('message', `%${user.user_metadata?.full_name || 'User'} has started the session%`)
+                .gt('created_at', fiveMinutesAgo);
+
+            if (recentNotifs && recentNotifs.length > 0) {
+                console.log('Notification already sent recently.');
+                return;
+            }
+
+            // Send Notification
+            // Check if partner is trying to join or just notify them to join
+            const message = `${user.user_metadata?.full_name || 'Your partner'} has started the session for ${session.skills?.title || 'Class'}. Join now!`;
+
+            const { error } = await supabase
+                .from('notifications')
+                .insert([{
+                    user_id: partnerId,
+                    message: message,
+                    link: window.location.pathname + window.location.search,
+                    is_read: false
+                }]);
+
+            if (error) console.error('Error sending notification:', error);
+            else console.log('Partner notified.');
+        };
+
+        notifyPartner();
+    }, [user, session, isGroupSession]);
+
     // 2. Fetch Initial Messages & Subscribe to Realtime
     useEffect(() => {
         if (!currentId) return;
