@@ -6,53 +6,94 @@ import { Award, Star, Trophy, Medal } from 'lucide-react';
 import Spinner from '../components/Spinner';
 
 export default function Leaderboard() {
+    const [activeTab, setActiveTab] = useState('teachers'); // 'teachers', 'earners', 'referrers'
     const [leaders, setLeaders] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         calculateLeaderboard();
-    }, []);
+    }, [activeTab]);
 
     async function calculateLeaderboard() {
+        setLeaders([]);
         setLoading(true);
         try {
-            // Fetch all completed requests to calculate "Sessions Taught"
-            const { data: requests, error } = await supabase
-                .from('requests')
-                .select('provider_id')
-                .eq('status', 'completed');
+            let leaderboardData = [];
 
-            if (error) throw error;
+            if (activeTab === 'teachers') {
+                // 1. Top Teachers (Sessions Taught)
+                const { data: requests, error } = await supabase
+                    .from('requests')
+                    .select('provider_id')
+                    .eq('status', 'completed');
 
-            // Tally up counts per provider
-            const counts = {};
-            requests.forEach(r => {
-                counts[r.provider_id] = (counts[r.provider_id] || 0) + 1;
-            });
+                if (error) throw error;
 
-            // Get IDs of providers with at least 1 session
-            const provedierIds = Object.keys(counts);
+                const counts = {};
+                requests.forEach(r => counts[r.provider_id] = (counts[r.provider_id] || 0) + 1);
+                const providerIds = Object.keys(counts);
 
-            if (provedierIds.length === 0) {
-                setLeaders([]);
-                setLoading(false);
-                return;
+                if (providerIds.length > 0) {
+                    const { data: profiles, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('id, full_name, avatar_url, bio')
+                        .in('id', providerIds);
+
+                    if (profileError) throw profileError;
+
+                    leaderboardData = profiles.map(profile => ({
+                        ...profile,
+                        score: counts[profile.id] || 0,
+                        metric: 'Sessions'
+                    }));
+                }
+            }
+            else if (activeTab === 'earners') {
+                // 2. Top Earners (Total Credits)
+                const { data: profiles, error } = await supabase
+                    .from('profiles')
+                    .select('id, full_name, avatar_url, bio, credits')
+                    .order('credits', { ascending: false })
+                    .limit(20);
+
+                if (error) throw error;
+
+                leaderboardData = profiles.map(profile => ({
+                    ...profile,
+                    score: profile.credits || 0,
+                    metric: 'Credits'
+                }));
+            }
+            else if (activeTab === 'referrers') {
+                // 3. Top Referrers (Most Invites)
+                const { data: referrals, error } = await supabase
+                    .from('referrals')
+                    .select('referrer_id');
+
+                if (error) throw error;
+
+                const counts = {};
+                referrals.forEach(r => counts[r.referrer_id] = (counts[r.referrer_id] || 0) + 1);
+                const referrerIds = Object.keys(counts);
+
+                if (referrerIds.length > 0) {
+                    const { data: profiles, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('id, full_name, avatar_url, bio')
+                        .in('id', referrerIds);
+
+                    if (profileError) throw profileError;
+
+                    leaderboardData = profiles.map(profile => ({
+                        ...profile,
+                        score: counts[profile.id] || 0,
+                        metric: 'Invites'
+                    }));
+                }
             }
 
-            // Fetch profile details for these providers
-            const { data: profiles, error: profileError } = await supabase
-                .from('profiles')
-                .select('id, full_name, avatar_url, bio')
-                .in('id', provedierIds);
-
-            if (profileError) throw profileError;
-
-            // Merge counts and sort
-            const leaderboardData = profiles.map(profile => ({
-                ...profile,
-                sessionsTaught: counts[profile.id] || 0
-            })).sort((a, b) => b.sessionsTaught - a.sessionsTaught); // Descending
-
+            // Sort by score descending
+            leaderboardData.sort((a, b) => b.score - a.score);
             setLeaders(leaderboardData);
 
         } catch (err) {
@@ -76,18 +117,49 @@ export default function Leaderboard() {
                     Community Leaderboard
                 </h2>
                 <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
-                    Recognizing our top teachers and contributors.
+                    Recognizing our top {activeTab === 'teachers' ? 'providers' : activeTab === 'earners' ? 'earners' : 'influencers'}.
                 </p>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex justify-center space-x-4 mb-8">
+                <button
+                    onClick={() => setActiveTab('teachers')}
+                    className={`px-4 py-2 rounded-full font-medium transition-colors ${activeTab === 'teachers'
+                            ? 'bg-indigo-600 text-white shadow-lg'
+                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                >
+                    Top Teachers
+                </button>
+                <button
+                    onClick={() => setActiveTab('earners')}
+                    className={`px-4 py-2 rounded-full font-medium transition-colors ${activeTab === 'earners'
+                            ? 'bg-indigo-600 text-white shadow-lg'
+                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                >
+                    Top Earners
+                </button>
+                <button
+                    onClick={() => setActiveTab('referrers')}
+                    className={`px-4 py-2 rounded-full font-medium transition-colors ${activeTab === 'referrers'
+                            ? 'bg-indigo-600 text-white shadow-lg'
+                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                >
+                    Top Referrers
+                </button>
             </div>
 
             {loading ? (
                 <Spinner size="lg" />
             ) : leaders.length === 0 ? (
-                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
-                    <p className="text-gray-500 dark:text-gray-400">No completed sessions yet. Be the first!</p>
+                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 dark:border-gray-700">
+                    <p className="text-gray-500 dark:text-gray-400">No data found for this category yet. Be the first!</p>
                 </div>
             ) : (
-                <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md transition-colors">
+                <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md transition-colors border border-gray-100 dark:border-gray-700">
                     <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                         {leaders.map((leader, index) => (
                             <li key={leader.id}>
@@ -112,8 +184,11 @@ export default function Leaderboard() {
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end">
-                                            <div className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-semibold">
-                                                {leader.sessionsTaught} Sessions
+                                            <div className={`px-3 py-1 rounded-full text-sm font-semibold ${activeTab === 'teachers' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                                    activeTab === 'earners' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                                                        'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                                                }`}>
+                                                {leader.score} {leader.metric}
                                             </div>
                                         </div>
                                     </div>

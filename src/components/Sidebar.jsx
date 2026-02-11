@@ -86,11 +86,11 @@ export default function Sidebar() {
                     </Link>
 
                     <Link
-                        to="/saved-skills"
-                        className={`${isActive('/saved-skills') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        to="/add-skill"
+                        className={`${isActive('/add-skill') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
                     >
-                        <Heart className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
-                        Saved Skills
+                        <PlusCircle className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        List Skill
                     </Link>
 
                     <Link
@@ -101,13 +101,7 @@ export default function Sidebar() {
                         Calendar
                     </Link>
 
-                    <Link
-                        to="/forum"
-                        className={`${isActive('/forum') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                    >
-                        <MessageSquare className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
-                        Community Forum
-                    </Link>
+
 
                     <Link
                         to="/leaderboard"
@@ -120,11 +114,11 @@ export default function Sidebar() {
 
 
                     <Link
-                        to="/add-skill"
-                        className={`${isActive('/add-skill') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        to="/saved-skills"
+                        className={`${isActive('/saved-skills') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
                     >
-                        <PlusCircle className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
-                        List Skill
+                        <Heart className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        Saved Skills
                     </Link>
 
                     <Link
@@ -133,6 +127,14 @@ export default function Sidebar() {
                     >
                         <HistoryIcon className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
                         History
+                    </Link>
+
+                    <Link
+                        to="/forum"
+                        className={`${isActive('/forum') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                    >
+                        <MessageSquare className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        Community Forum
                     </Link>
 
                     <Link
