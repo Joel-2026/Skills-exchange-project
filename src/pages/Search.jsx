@@ -26,7 +26,7 @@ export default function Search() {
     const CATEGORIES = [
         'All', 'Technology', 'Music', 'Language', 'Lifestyle', 'Business', 'Academics',
         'Design', 'Marketing', 'Health & Fitness', 'Cooking', 'Art', 'Finance',
-        'Personal Development', 'DIY & Crafts'
+        'Personal Development', 'DIY & Crafts', 'Other'
     ];
 
     useEffect(() => {
@@ -149,29 +149,40 @@ export default function Search() {
             return;
         }
 
-        if (confirm(`Request a session for "${skill.title}"? This will cost 1 credit upon completion.`)) {
-            const { error } = await supabase.from('requests').insert([
-                {
+        if (!confirm(`Request a session for "${skill.title}"? This will cost 1 credit immediately.`)) {
+            return;
+        }
+
+        try {
+            // Execute all operations in parallel for speed
+            const [creditResult, requestResult, notificationResult] = await Promise.all([
+                supabase.from('profiles').update({ credits: profile.credits - 1 }).eq('id', user.id),
+                supabase.from('requests').insert([{
                     skill_id: skill.id,
                     learner_id: user.id,
                     provider_id: skill.provider_id,
                     status: 'pending'
-                }
-            ]);
-
-            if (error) {
-                alert('Error booking session: ' + error.message);
-            } else {
-                // Notify Provider
-                await supabase.from('notifications').insert([{
+                }]),
+                supabase.from('notifications').insert([{
                     user_id: skill.provider_id,
                     type: 'request_received',
                     message: `New request: ${user.email} wants to learn "${skill.title}"`,
                     link: '/dashboard'
-                }]);
+                }])
+            ]);
 
-                alert('Request sent! Check your dashboard.');
+            // Check for errors
+            if (creditResult.error || requestResult.error) {
+                // Refund if needed
+                if (creditResult.error === null && requestResult.error) {
+                    await supabase.from('profiles').update({ credits: profile.credits }).eq('id', user.id);
+                }
+                throw new Error(creditResult.error?.message || requestResult.error?.message);
             }
+
+            alert('Request sent! 1 Credit deducted.');
+        } catch (error) {
+            alert('Error booking session: ' + error.message);
         }
     }
 

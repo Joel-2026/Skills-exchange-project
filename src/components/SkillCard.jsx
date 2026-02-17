@@ -2,9 +2,9 @@ import { supabase } from '../lib/supabaseClient';
 import { Clock, MapPin, Monitor, User, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StarRating from './StarRating';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 
-export default function SkillCard({ skill, showProvider = true, onBook }) {
+function SkillCard({ skill, showProvider = true, onBook }) {
     const isOnline = skill.mode === 'online';
     const [isSaved, setIsSaved] = useState(false);
     const [user, setUser] = useState(null);
@@ -49,35 +49,35 @@ export default function SkillCard({ skill, showProvider = true, onBook }) {
 
     return (
 
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-all border border-gray-100 dark:border-gray-700 relative group">
-            <div className="absolute top-12 right-4 z-10">
+        <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 relative group animate-fade-in">
+            <div className="absolute top-3 right-3 z-10">
                 <button
                     onClick={toggleSave}
-                    className={`p-1.5 rounded-full bg-white/80 dark:bg-gray-800/80 shadow-sm backdrop-blur-sm transition-colors ${isSaved ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                    className={`p-2 rounded-full backdrop-blur-md shadow-lg transition-all duration-300 transform hover:scale-110 ${isSaved ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' : 'bg-white/90 dark:bg-gray-800/90 text-gray-400 hover:text-red-500'}`}
                 >
                     <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
                 </button>
             </div>
 
-            <div className="p-5">
-                <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+            <div className="p-6">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md">
                         {skill.category || 'General'}
                     </span>
                     {skill.proficiency && (
-                        <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                        <span className="badge-gradient">
                             {skill.proficiency}
                         </span>
                     )}
-                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md flex items-center gap-1">
                         {skill.mode === 'online' ? (
                             <>
-                                <Monitor className="w-3 h-3 mr-1" />
+                                <Monitor className="w-3 h-3" />
                                 {skill.mode}
                             </>
                         ) : (
                             <>
-                                <MapPin className="w-3 h-3 mr-1" />
+                                <MapPin className="w-3 h-3" />
                                 <span className="truncate max-w-[100px]" title={skill.location || 'In-Person'}>
                                     {skill.location || 'In-Person'}
                                 </span>
@@ -88,53 +88,53 @@ export default function SkillCard({ skill, showProvider = true, onBook }) {
 
                 <div className="mt-4">
                     <Link to={`/skill/${skill.id}`} className="block group">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors" title={skill.title}>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate group-hover:text-gradient-primary transition-all duration-300 text-shadow" title={skill.title}>
                             {skill.title}
                         </h3>
                     </Link>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2" title={skill.description}>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2" title={skill.description}>
                         {skill.description}
                     </p>
                 </div>
 
                 {showProvider && skill.profiles && (
-                    <div className="mt-4 flex items-center">
+                    <div className="mt-5 flex items-center">
                         <div className="flex-shrink-0">
                             <Link to={`/profile/${skill.profiles.id}`}>
                                 {skill.profiles.avatar_url ? (
-                                    <img className="h-8 w-8 rounded-full" src={skill.profiles.avatar_url} alt="" />
+                                    <img className="h-10 w-10 rounded-full ring-2 ring-orange-500/50 transition-all hover:ring-4" src={skill.profiles.avatar_url} alt="" />
                                 ) : (
-                                    <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                        <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center ring-2 ring-orange-500/50">
+                                        <User className="h-5 w-5 text-white" />
                                     </div>
                                 )}
                             </Link>
                         </div>
                         <div className="ml-3">
-                            <Link to={`/profile/${skill.profiles.id}`} className="hover:underline">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">{skill.profiles.full_name || 'Anonymous'}</p>
+                            <Link to={`/profile/${skill.profiles.id}`} className="hover:text-gradient-primary transition-all duration-300">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white">{skill.profiles.full_name || 'Anonymous'}</p>
                             </Link>
                             {skill.averageRating > 0 && (
                                 <div className="flex items-center mt-0.5">
                                     <StarRating rating={skill.averageRating} readOnly={true} size={12} />
-                                    <span className="ml-1 text-xs text-gray-400">({skill.reviewCount})</span>
+                                    <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">({skill.reviewCount})</span>
                                 </div>
                             )}
                         </div>
                     </div>
                 )}
             </div>
-            <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3 flex space-x-2">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 px-6 py-4 flex gap-3">
                 <Link
                     to={`/skill/${skill.id}`}
-                    className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
+                    className="flex-1 inline-flex justify-center items-center px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 text-sm font-semibold rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all duration-300 transform hover:scale-105"
                 >
                     View
                 </Link>
                 {onBook ? (
                     <button
                         onClick={() => onBook(skill)}
-                        className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white btn-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                        className="flex-1 inline-flex justify-center items-center px-4 py-2.5 text-sm font-semibold rounded-lg shadow-md btn-primary"
                     >
                         Request
                     </button>
@@ -145,4 +145,7 @@ export default function SkillCard({ skill, showProvider = true, onBook }) {
         </div>
     );
 }
+
+export default memo(SkillCard);
+
 

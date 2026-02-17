@@ -140,6 +140,25 @@ export default function GroupSessions() {
                 }
             }
 
+            // Deduct 1 Credit
+            const { data: profile } = await supabase.from('profiles').select('credits').eq('id', user.id).single();
+            if (profile.credits < 1) {
+                alert("You don't have enough credits to join this session!");
+                return;
+            }
+
+            if (!confirm(`Join this session? 1 Credit will be deducted immediately.`)) return;
+
+            const { error: creditError } = await supabase
+                .from('profiles')
+                .update({ credits: profile.credits - 1 })
+                .eq('id', user.id);
+
+            if (creditError) {
+                alert('Error processing credit deduction: ' + creditError.message);
+                return;
+            }
+
             // Create a request for this session
             const { data: request, error: requestError } = await supabase
                 .from('requests')
@@ -153,7 +172,11 @@ export default function GroupSessions() {
                 .select()
                 .single();
 
-            if (requestError) throw requestError;
+            if (requestError) {
+                // Refund if failed
+                await supabase.from('profiles').update({ credits: profile.credits }).eq('id', user.id);
+                throw requestError;
+            }
 
             // Notify provider
             await supabase.from('notifications').insert([{
@@ -163,7 +186,7 @@ export default function GroupSessions() {
                 link: `/group-sessions`
             }]);
 
-            alert('Successfully joined the group session!');
+            alert('Successfully joined the group session! 1 Credit deducted.');
             fetchData(user.id);
         } catch (error) {
             if (error.code === '23505') { // Unique violation
@@ -605,6 +628,7 @@ export default function GroupSessions() {
                                                         // Optimistically update UI
                                                         setJoinedSessions(current => current.filter(s => s.id !== session.id));
 
+                                                        // Decrease participant count
                                                         // Update open sessions to show "Join" button again and decrease participant count
                                                         setOpenSessions(current => current.map(s => {
                                                             if (s.id === session.id) {
@@ -616,7 +640,11 @@ export default function GroupSessions() {
                                                             return s;
                                                         }));
 
-                                                        alert('You have left the session.');
+                                                        // Refund Credit
+                                                        const { data: profile } = await supabase.from('profiles').select('credits').eq('id', user.id).single();
+                                                        await supabase.from('profiles').update({ credits: profile.credits + 1 }).eq('id', user.id);
+
+                                                        alert('You have left the session. 1 Credit refunded.');
                                                         fetchData(user.id);
                                                     } catch (err) {
                                                         alert('Error leaving session: ' + err.message);

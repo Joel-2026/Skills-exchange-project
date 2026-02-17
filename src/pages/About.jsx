@@ -18,7 +18,7 @@ export default function About() {
                 </div>
                 <div className="relative max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8 text-center">
                     <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
-                        About SkillExchange
+                        About Skillify
                     </h1>
                     <p className="mt-6 max-w-2xl mx-auto text-xl text-indigo-100">
                         Connecting learners and teachers worldwide. We believe everyone has something to teach and something to learn.
@@ -131,7 +131,7 @@ export default function About() {
                 <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8">
                     <div className="mt-8 md:mt-0 md:order-1">
                         <p className="text-center text-base text-gray-400">
-                            &copy; 2026 Skill Exchange Platform. All rights reserved.
+                            &copy; 2026 Skillify. All rights reserved.
                         </p>
                         <p className="text-center text-xs text-gray-300 mt-2">
                             Made with ❤️ by Joel

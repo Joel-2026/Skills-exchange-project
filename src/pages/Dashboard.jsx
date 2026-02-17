@@ -4,11 +4,14 @@ import { supabase } from '../lib/supabaseClient';
 import { Clock, BookOpen, PlusCircle, Users } from 'lucide-react';
 import { DashboardSkeleton } from '../components/Skeleton';
 import { checkAndAwardBadges } from '../lib/gamification';
+import BuyCreditsModal from '../components/BuyCreditsModal';
+import IssueCertificateModal from '../components/IssueCertificateModal';
 
 export default function Dashboard() {
     const [session, setSession] = useState(null);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showBuyCredits, setShowBuyCredits] = useState(false);
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -75,102 +78,125 @@ export default function Dashboard() {
     if (loading) return <DashboardSkeleton />;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-                <div className="px-4 py-5 sm:px-6 flex justify-between items-center bg-white dark:bg-gray-800 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+            <div className="card-glass shadow-xl overflow-hidden rounded-2xl mb-8">
+                <div className="px-6 py-6 sm:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                        <h3 className="text-2xl leading-6 font-bold text-gray-900 dark:text-white text-shadow">
                             Welcome back, {profile?.full_name || session?.user.email}
                         </h3>
-                        <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+                        <p className="mt-2 max-w-2xl text-sm text-gray-600 dark:text-gray-400">
                             Manage your exchanges and skills.
                         </p>
-                        <button onClick={seedData} className="mt-2 text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-400 underline">
+                        <button onClick={seedData} className="mt-2 text-xs text-orange-500 hover:text-orange-700 dark:hover:text-orange-400 underline font-medium">
                             (Dev) Add Demo Data
                         </button>
                     </div>
-                    <div className="flex items-center bg-indigo-50 px-4 py-2 rounded-full">
-                        <Clock className="h-5 w-5 text-indigo-600 mr-2" />
-                        <span className="text-xl font-bold text-indigo-700">{profile?.credits || 0}</span>
-                        <span className="ml-1 text-sm text-indigo-600">Credits</span>
+                    <div className="flex items-center gap-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 px-6 py-3 rounded-xl border-2 border-orange-200 dark:border-orange-700/50">
+                        <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                        <div>
+                            <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400">{profile?.credits || 0}</span>
+                            <span className="ml-2 text-sm font-semibold text-orange-600 dark:text-orange-400">Credits</span>
+                        </div>
+                        <button
+                            onClick={() => setShowBuyCredits(true)}
+                            className="ml-2 inline-flex items-center px-4 py-2 text-xs font-bold rounded-lg shadow-md bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-300"
+                        >
+                            Buy Credits
+                        </button>
                     </div>
                 </div>
             </div>
 
+            <BuyCreditsModal
+                isOpen={showBuyCredits}
+                onClose={() => setShowBuyCredits(false)}
+                onSuccess={() => {
+                    if (session?.user?.id) getProfile(session.user.id);
+                }}
+                userId={session?.user?.id}
+            />
+
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
                 {/* Action Card 1 */}
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-all">
-                    <div className="p-5">
+                <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
+                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 px-6 py-4">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
-                                <BookOpen className="h-6 w-6 text-gray-400" />
+                                <BookOpen className="h-8 w-8 text-white" />
                             </div>
-                            <div className="ml-5 w-0 flex-1">
+                            <div className="ml-4 w-0 flex-1">
                                 <dl>
-                                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">I want to learn</dt>
+                                    <dt className="text-sm font-semibold text-blue-100 truncate">
+                                        Explore Skills
+                                    </dt>
                                     <dd>
-                                        <div className="text-lg font-medium text-gray-900 dark:text-white">Find a Teacher</div>
+                                        <div className="text-xl font-bold text-white">Browse</div>
                                     </dd>
                                 </dl>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-700 px-5 py-3 transition-colors">
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 px-6 py-3">
                         <div className="text-sm">
-                            <Link to="/search" className="font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-200">
-                                Browse Skills &rarr;
+                            <Link to="/search" className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1 group-hover:gap-2 transition-all">
+                                Search Now <span>→</span>
                             </Link>
                         </div>
                     </div>
                 </div>
 
                 {/* Action Card 2 */}
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-all">
-                    <div className="p-5">
+                <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
+                    <div className="bg-gradient-to-br from-orange-500 to-red-600 px-6 py-4">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
-                                <PlusCircle className="h-6 w-6 text-gray-400" />
+                                <PlusCircle className="h-8 w-8 text-white" />
                             </div>
-                            <div className="ml-5 w-0 flex-1">
+                            <div className="ml-4 w-0 flex-1">
                                 <dl>
-                                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">I want to teach</dt>
+                                    <dt className="text-sm font-semibold text-orange-100 truncate">
+                                        List Your Skill
+                                    </dt>
                                     <dd>
-                                        <div className="text-lg font-medium text-gray-900 dark:text-white">List a Skill</div>
+                                        <div className="text-xl font-bold text-white">Teach</div>
                                     </dd>
                                 </dl>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-700 px-5 py-3 transition-colors">
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 px-6 py-3">
                         <div className="text-sm">
-                            <Link to="/add-skill" className="font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-200">
-                                List a New Skill &rarr;
+                            <Link to="/add-skill" className="font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 flex items-center gap-1 group-hover:gap-2 transition-all">
+                                Add Skill <span>→</span>
                             </Link>
                         </div>
                     </div>
                 </div>
 
                 {/* Action Card 3 - Group Sessions */}
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-all">
-                    <div className="p-5">
+                <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
+                    <div className="bg-gradient-to-br from-green-500 to-emerald-600 px-6 py-4">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
-                                <Users className="h-6 w-6 text-gray-400" />
+                                <Users className="h-8 w-8 text-white" />
                             </div>
-                            <div className="ml-5 w-0 flex-1">
+                            <div className="ml-4 w-0 flex-1">
                                 <dl>
-                                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Manage groups</dt>
+                                    <dt className="text-sm font-semibold text-green-100 truncate">
+                                        Group Sessions
+                                    </dt>
                                     <dd>
-                                        <div className="text-lg font-medium text-gray-900 dark:text-white">Group Sessions</div>
+                                        <div className="text-xl font-bold text-white">Manage</div>
                                     </dd>
                                 </dl>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-700 px-5 py-3 transition-colors">
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 px-6 py-3">
                         <div className="text-sm">
-                            <Link to="/group-sessions" className="font-medium text-indigo-600 dark:text-indigo-300 hover:text-indigo-500 dark:hover:text-indigo-200">
-                                Manage Groups &rarr;
+                            <Link to="/group-sessions" className="font-semibold text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 flex items-center gap-1 group-hover:gap-2 transition-all">
+                                View Groups <span>→</span>
                             </Link>
                         </div>
                     </div>
@@ -181,15 +207,17 @@ export default function Dashboard() {
             <div className="mb-8">
                 <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Browse by Category</h3>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                    {['Technology', 'Music', 'Language', 'Lifestyle', 'Business', 'Academics', 'Design', 'Marketing', 'Health & Fitness', 'Cooking', 'Art', 'Finance'].map((category) => (
-                        <Link
-                            key={category}
-                            to={`/search?category=${category}`}
-                            className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow text-center hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                        >
-                            <span className="text-gray-900 dark:text-white font-medium">{category}</span>
-                        </Link>
-                    ))}
+                    {['Technology', 'Music', 'Language', 'Lifestyle', 'Business', 'Academics', 'Design', 'Marketing', 'Health & Fitness', 'Cooking', 'Art', 'Finance']
+                        .filter(category => category !== 'Others')
+                        .map((category) => (
+                            <Link
+                                key={category}
+                                to={`/search?category=${category}`}
+                                className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow text-center hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                            >
+                                <span className="text-gray-900 dark:text-white font-medium">{category}</span>
+                            </Link>
+                        ))}
                 </div>
             </div>
 
@@ -214,6 +242,8 @@ function RecentSkills({ profile }) {
             let query = supabase
                 .from('skills')
                 .select(`*, profiles(full_name, avatar_url)`)
+                .neq('category', 'Other')
+                .neq('category', 'Others')
                 .order('created_at', { ascending: false })
                 .limit(6); // Increased limit
 
@@ -229,6 +259,8 @@ function RecentSkills({ profile }) {
                     .from('skills')
                     .select(`*, profiles(full_name, avatar_url)`)
                     .in('category', interests)
+                    .neq('category', 'Other')
+                    .neq('category', 'Others')
                     .order('created_at', { ascending: false })
                     .limit(6);
 
@@ -285,6 +317,8 @@ function RequestsList({ session }) {
     const [loading, setLoading] = useState(true);
     const [showAllIncoming, setShowAllIncoming] = useState(false);
     const [showAllOutgoing, setShowAllOutgoing] = useState(false);
+    const [showCertificateModal, setShowCertificateModal] = useState(false);
+    const [selectedRequest, setSelectedRequest] = useState(null);
     const navigate = useNavigate();
 
     const LIMIT = 3;
@@ -316,14 +350,15 @@ function RequestsList({ session }) {
 
     async function updateStatus(requestId, newStatus, requestData) {
         if (newStatus === 'completed') {
-            const { data: learner } = await supabase.from('profiles').select('credits').eq('id', requestData.learner_id).single();
+            // Legacy path: If IssueCertificateModal is bypassed or fails
+            // const { data: learner } = await supabase.from('profiles').select('credits').eq('id', requestData.learner_id).single();
             const { data: provider } = await supabase.from('profiles').select('credits').eq('id', session.user.id).single();
 
             // 1. Update Request
             await supabase.from('requests').update({ status: 'completed' }).eq('id', requestId);
 
-            // 2. Transact
-            await supabase.from('profiles').update({ credits: learner.credits - 1 }).eq('id', requestData.learner_id);
+            // 2. Transact (Provider gets credit, Learner paid upfront)
+            // await supabase.from('profiles').update({ credits: learner.credits - 1 }).eq('id', requestData.learner_id);
             await supabase.from('profiles').update({ credits: provider.credits + 1 }).eq('id', session.user.id);
 
             // 3. Notify Learner
@@ -338,6 +373,15 @@ function RequestsList({ session }) {
             window.location.reload();
         } else {
             // Accepted or Declined
+            if (newStatus === 'declined') {
+                if (confirm('Decline this request? The 1 credit will be refunded to the learner.')) {
+                    const { data: learner } = await supabase.from('profiles').select('credits').eq('id', requestData.learner_id).single();
+                    await supabase.from('profiles').update({ credits: learner.credits + 1 }).eq('id', requestData.learner_id);
+                } else {
+                    return; // Cancel decline
+                }
+            }
+
             const { error } = await supabase
                 .from('requests')
                 .update({ status: newStatus })
@@ -350,7 +394,7 @@ function RequestsList({ session }) {
                 await supabase.from('notifications').insert([{
                     user_id: requestData.learner_id,
                     type: 'request_' + newStatus,
-                    message: `Your request for "${requestData.skills.title}" was ${newStatus}.`,
+                    message: `Your request for "${requestData.skills.title}" was ${newStatus}.${newStatus === 'declined' ? ' Credit refunded.' : ''}`,
                     link: `/session/${requestId}`
                 }]);
 
@@ -400,7 +444,15 @@ function RequestsList({ session }) {
                                     )}
                                     {req.status === 'accepted' && (
                                         <div className="flex space-x-2 mt-2">
-                                            <button onClick={() => updateStatus(req.id, 'completed', req)} className="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-2 py-1 rounded">Mark Completed</button>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedRequest(req);
+                                                    setShowCertificateModal(true);
+                                                }}
+                                                className="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-2 py-1 rounded"
+                                            >
+                                                Mark Completed
+                                            </button>
                                             <Link to={`/session/${req.id}?mode=chat`} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded flex items-center border dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600">
                                                 Chat Only
                                             </Link>
@@ -466,6 +518,19 @@ function RequestsList({ session }) {
                     </div>
                 )}
             </div>
+
+            <IssueCertificateModal
+                isOpen={showCertificateModal}
+                onClose={() => {
+                    setShowCertificateModal(false);
+                    setSelectedRequest(null);
+                }}
+                request={selectedRequest}
+                onSuccess={() => {
+                    fetchRequests();
+                    window.location.reload(); // To update credits in header
+                }}
+            />
         </div>
     );
 }

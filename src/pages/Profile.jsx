@@ -38,6 +38,7 @@ export default function Profile() {
     const [reviews, setReviews] = useState([]);
     const [averageRating, setAverageRating] = useState(0);
     const [badges, setBadges] = useState([]);
+    const [certificates, setCertificates] = useState([]);
 
     useEffect(() => {
         async function getProfile() {
@@ -103,6 +104,15 @@ export default function Profile() {
 
                 if (badgesData) setBadges(badgesData.map(ub => ub.badges));
 
+                // Fetch Certificates
+                const { data: certsData } = await supabase
+                    .from('certificates')
+                    .select('*, skills(title), provider:provider_id(full_name)')
+                    .eq('learner_id', targetUserId)
+                    .order('issued_at', { ascending: false });
+
+                if (certsData) setCertificates(certsData);
+
                 // Fetch open group sessions (scheduled sessions with available spots)
                 // Removed explicit FK hint !public_group_sessions_provider_id_fkey
                 const { data: sessionsData, error: sessionsError } = await supabase
@@ -163,15 +173,31 @@ export default function Profile() {
     }
 
     async function deleteSkill(skillId) {
-        if (!confirm('Are you sure you want to delete this skill?')) return;
+        if (!confirm('Are you sure you want to delete this skill? This will also cancel any pending requests and group sessions associated with it.')) return;
         setLoading(true);
         try {
+            // 1. Delete associated requests
+            const { error: requestsError } = await supabase.from('requests').delete().eq('skill_id', skillId);
+            if (requestsError) throw requestsError;
+
+            // 2. Delete associated group sessions
+            const { error: sessionsError } = await supabase.from('group_sessions').delete().eq('skill_id', skillId);
+            if (sessionsError) throw sessionsError;
+
+            // 3. Delete from saved_skills - SKIPPED
+            // The table definition has ON DELETE CASCADE, so we don't need to manually delete.
+            // Furthermore, RLS prevents us from deleting other users' saved skills, so manual delete would fail.
+
+
+            // 4. Delete the skill itself
             const { error } = await supabase.from('skills').delete().eq('id', skillId);
             if (error) throw error;
+
             setMySkills(mySkills.filter(s => s.id !== skillId));
-            alert('Skill deleted!');
+            alert('Skill and associated data deleted!');
         } catch (error) {
-            alert(error.message);
+            console.error('Error deleting skill:', error);
+            alert('Failed to delete skill: ' + error.message);
         } finally {
             setLoading(false);
         }
@@ -730,6 +756,53 @@ export default function Profile() {
                     )}
                 </div>
             </div>
+
+            {/* Certificates Section */}
+            {certificates.length > 0 && (
+                <>
+                    <div className="hidden sm:block" aria-hidden="true">
+                        <div className="py-5">
+                            <div className="border-t border-gray-200" />
+                        </div>
+                    </div>
+
+                    <div className="md:grid md:grid-cols-3 md:gap-6">
+                        <div className="md:col-span-1">
+                            <div className="px-4 sm:px-0">
+                                <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">My Certificates</h3>
+                                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                    Earned certifications.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 md:mt-0 md:col-span-2">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                {certificates.map(cert => (
+                                    <div key={cert.id} className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 border border-indigo-100 dark:border-gray-700 hover:shadow-md transition-shadow relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-2 opacity-10">
+                                            <Award className="h-12 w-12 text-indigo-600" />
+                                        </div>
+                                        <div className="relative z-10">
+                                            <h4 className="text-lg font-bold text-gray-900 dark:text-white truncate">{cert.skills?.title}</h4>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Issued by {cert.provider?.full_name}</p>
+                                            <p className="text-xs text-gray-400 mt-2">{new Date(cert.issued_at).toLocaleDateString()}</p>
+                                            <a
+                                                href={`/certificate/${cert.id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="mt-3 inline-flex items-center text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
+                                            >
+                                                View Certificate &rarr;
+                                            </a>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
 
             {/* Available Group Sessions Section */}
             {groupSessions.length > 0 && (

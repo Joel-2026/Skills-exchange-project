@@ -11,6 +11,7 @@ export default function SkillDetails() {
     const navigate = useNavigate();
     const [skill, setSkill] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [booking, setBooking] = useState(false);
     const [user, setUser] = useState(null);
     const [averageRating, setAverageRating] = useState(0);
     const [reviewCount, setReviewCount] = useState(0);
@@ -57,6 +58,8 @@ export default function SkillDetails() {
         fetchData();
     }, [skillId]);
 
+    const [sessionCount, setSessionCount] = useState(1);
+
     const handleBook = async () => {
         if (!user) {
             navigate('/login');
@@ -67,36 +70,55 @@ export default function SkillDetails() {
             return;
         }
 
+        const totalCost = sessionCount * 1;
+
         const { data: profile } = await supabase.from('profiles').select('credits').eq('id', user.id).single();
-        if (profile.credits < 1) {
-            alert("You don't have enough credits!");
+        if (profile.credits < totalCost) {
+            alert(`You don't have enough credits! You need ${totalCost} credits.`);
             return;
         }
 
-        if (confirm(`Request a session for "${skill.title}"? This will cost 1 credit upon completion.`)) {
-            const { error } = await supabase.from('requests').insert([
-                {
-                    skill_id: skill.id,
-                    learner_id: user.id,
-                    provider_id: skill.provider_id,
-                    status: 'pending'
-                }
-            ]);
+        if (!confirm(`Request ${sessionCount} session(s) for "${skill.title}"? This will cost ${totalCost} credit(s) immediately.`)) {
+            return;
+        }
 
-            if (error) {
-                alert('Error booking session: ' + error.message);
-            } else {
-                // Notify Provider
-                await supabase.from('notifications').insert([{
+        setBooking(true);
+
+        try {
+            // Prepare requests
+            const requestsToInsert = Array.from({ length: sessionCount }).map(() => ({
+                skill_id: skill.id,
+                learner_id: user.id,
+                provider_id: skill.provider_id,
+                status: 'pending'
+            }));
+
+            // Execute all operations in parallel for speed
+            const [creditResult, requestResult, notificationResult] = await Promise.all([
+                supabase.from('profiles').update({ credits: profile.credits - totalCost }).eq('id', user.id),
+                supabase.from('requests').insert(requestsToInsert),
+                supabase.from('notifications').insert([{
                     user_id: skill.provider_id,
                     type: 'request_received',
-                    message: `New request: ${user.email} wants to learn "${skill.title}"`,
+                    message: `New request: ${user.email} wants to learn "${skill.title}" (${sessionCount} sessions)`,
                     link: '/dashboard'
-                }]);
+                }])
+            ]);
 
-                alert('Request sent! Check your dashboard.');
-                navigate('/dashboard');
+            // Check for errors
+            if (creditResult.error || requestResult.error) {
+                // Refund if needed
+                if (creditResult.error === null && requestResult.error) {
+                    await supabase.from('profiles').update({ credits: profile.credits }).eq('id', user.id);
+                }
+                throw new Error(creditResult.error?.message || requestResult.error?.message);
             }
+
+            // Navigate immediately without blocking alert
+            navigate('/dashboard', { state: { message: `Success! ${totalCost} credit(s) deducted.` } });
+        } catch (error) {
+            alert('Error booking sessions: ' + error.message);
+            setBooking(false);
         }
     };
 
@@ -188,13 +210,41 @@ export default function SkillDetails() {
 
                     <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                         {user && user.id !== skill.provider_id ? (
-                            <button
-                                onClick={handleBook}
-                                className="w-full md:w-auto flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white btn-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                <CheckCircle className="w-5 h-5 mr-2" />
-                                Request Session (1 Credit)
-                            </button>
+                            <div className="flex flex-col md:flex-row items-center gap-4">
+                                {user && user.id !== skill.provider_id && (
+                                    <div className="flex items-center">
+                                        <label htmlFor="sessionCount" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Sessions:
+                                        </label>
+                                        <input
+                                            type="number"
+                                            id="sessionCount"
+                                            min="1"
+                                            max="10"
+                                            value={sessionCount}
+                                            onChange={(e) => setSessionCount(Math.max(1, parseInt(e.target.value) || 1))}
+                                            className="w-16 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border text-center"
+                                        />
+                                    </div>
+                                )}
+                                <button
+                                    onClick={handleBook}
+                                    disabled={booking}
+                                    className="w-full md:w-auto flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white btn-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {booking ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle className="w-5 h-5 mr-2" />
+                                            Request {sessionCount} Session{sessionCount > 1 ? 's' : ''} ({sessionCount} Credit{sessionCount > 1 ? 's' : ''})
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         ) : user && user.id === skill.provider_id ? (
                             <div className="text-gray-500 italic">This is your skill.</div>
                         ) : (

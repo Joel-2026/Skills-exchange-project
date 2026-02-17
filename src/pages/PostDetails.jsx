@@ -31,7 +31,7 @@ export default function PostDetails() {
         // Fetch Post
         const { data: postData, error: postError } = await supabase
             .from('posts')
-            .select('*, profiles(full_name, avatar_url, id)')
+            .select('*, profiles:user_id(full_name, avatar_url, id)')
             .eq('id', postId)
             .single();
 
@@ -46,7 +46,7 @@ export default function PostDetails() {
         // Fetch Comments
         const { data: commentsData, error: commentsError } = await supabase
             .from('comments')
-            .select('*, profiles(full_name, avatar_url, id)')
+            .select('*, profiles:user_id(full_name, avatar_url, id)')
             .eq('post_id', postId)
             .order('created_at', { ascending: true });
 
@@ -70,7 +70,7 @@ export default function PostDetails() {
             .select('user_id')
             .eq('post_id', postId)
             .eq('user_id', userId)
-            .single();
+            .maybeSingle();
 
         setHasLiked(!!data);
     }
@@ -112,7 +112,7 @@ export default function PostDetails() {
                 user_id: user.id,
                 content: newComment
             }])
-            .select('*, profiles(full_name, avatar_url, id)')
+            .select('*, profiles:user_id(full_name, avatar_url, id)')
             .single();
 
         if (error) {

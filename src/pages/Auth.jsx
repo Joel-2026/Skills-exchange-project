@@ -55,7 +55,8 @@ export default function Auth() {
                     }
                 });
                 if (error) throw error;
-                alert('Check your email for the login link!');
+                // Navigate to onboarding instead of showing alert
+                navigate('/onboarding');
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email,

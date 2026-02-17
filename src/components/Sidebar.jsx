@@ -72,33 +72,33 @@ export default function Sidebar() {
                 <nav className="flex-1 px-2 space-y-1">
                     <Link
                         to="/dashboard"
-                        className={`${isActive('/dashboard') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        className={`${isActive('/dashboard') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:translate-x-1`}
                     >
-                        <LayoutDashboard className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        <LayoutDashboard className="mr-3 flex-shrink-0 h-6 w-6 transition-all duration-200 group-hover:scale-110 group-hover:drop-shadow-lg" aria-hidden="true" />
                         Dashboard
                     </Link>
 
                     <Link
                         to="/search"
-                        className={`${isActive('/search') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        className={`${isActive('/search') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:translate-x-1`}
                     >
-                        <Search className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        <Search className="mr-3 flex-shrink-0 h-6 w-6 transition-all duration-200 group-hover:scale-125 group-hover:rotate-12" aria-hidden="true" />
                         Explore Skills
                     </Link>
 
                     <Link
                         to="/add-skill"
-                        className={`${isActive('/add-skill') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        className={`${isActive('/add-skill') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:translate-x-1`}
                     >
-                        <PlusCircle className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        <PlusCircle className="mr-3 flex-shrink-0 h-6 w-6 transition-all duration-300 group-hover:rotate-180 group-hover:scale-110" aria-hidden="true" />
                         List Skill
                     </Link>
 
                     <Link
                         to="/calendar"
-                        className={`${isActive('/calendar') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        className={`${isActive('/calendar') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:translate-x-1`}
                     >
-                        <CalendarIcon className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        <CalendarIcon className="mr-3 flex-shrink-0 h-6 w-6 transition-all duration-200 group-hover:scale-110 group-hover:-translate-y-1" aria-hidden="true" />
                         Calendar
                     </Link>
 
@@ -110,9 +110,9 @@ export default function Sidebar() {
                             e.preventDefault();
                             navigate('/leaderboard', { state: { refresh: Date.now() } });
                         }}
-                        className={`${isActive('/leaderboard') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        className={`${isActive('/leaderboard') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:translate-x-1`}
                     >
-                        <Trophy className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        <Trophy className="mr-3 flex-shrink-0 h-6 w-6 transition-all duration-300 group-hover:-rotate-[20deg] group-hover:scale-125 group-hover:-translate-y-1" aria-hidden="true" />
                         Leaderboard
                     </Link>
 
@@ -120,33 +120,33 @@ export default function Sidebar() {
 
                     <Link
                         to="/saved-skills"
-                        className={`${isActive('/saved-skills') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        className={`${isActive('/saved-skills') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:translate-x-1`}
                     >
-                        <Heart className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        <Heart className="mr-3 flex-shrink-0 h-6 w-6 transition-all duration-200 group-hover:scale-125 group-hover:fill-current" aria-hidden="true" />
                         Saved Skills
                     </Link>
 
                     <Link
                         to="/history"
-                        className={`${isActive('/history') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        className={`${isActive('/history') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:translate-x-1`}
                     >
-                        <HistoryIcon className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        <HistoryIcon className="mr-3 flex-shrink-0 h-6 w-6 transition-all duration-300 group-hover:rotate-[360deg] group-hover:scale-110" aria-hidden="true" />
                         History
                     </Link>
 
                     <Link
                         to="/forum"
-                        className={`${isActive('/forum') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        className={`${isActive('/forum') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:translate-x-1`}
                     >
-                        <MessageSquare className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        <MessageSquare className="mr-3 flex-shrink-0 h-6 w-6 transition-all duration-200 group-hover:scale-110 group-hover:-rotate-12" aria-hidden="true" />
                         Community Forum
                     </Link>
 
                     <Link
                         to="/settings"
-                        className={`${isActive('/settings') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                        className={`${isActive('/settings') ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'} group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:scale-105 hover:translate-x-1`}
                     >
-                        <User className="mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true" />
+                        <User className="mr-3 flex-shrink-0 h-6 w-6 transition-all duration-300 group-hover:rotate-[360deg] group-hover:scale-110" aria-hidden="true" />
                         Settings
                     </Link>
                 </nav>
@@ -154,12 +154,12 @@ export default function Sidebar() {
             <div className="flex-shrink-0 flex border-t border-white/10 p-4">
                 <button
                     onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }}
-                    className="flex-shrink-0 w-full group block"
+                    className="flex-shrink-0 w-full group block transition-all duration-300 hover:scale-105"
                 >
                     <div className="flex items-center">
-                        <LogOut className="inline-block h-5 w-5 text-white/70 group-hover:text-white" />
+                        <LogOut className="inline-block h-5 w-5 text-white/70 group-hover:text-white transition-all duration-300 group-hover:-translate-x-1" />
                         <div className="ml-3">
-                            <p className="text-sm font-medium text-white/70 group-hover:text-white">Sign Out</p>
+                            <p className="text-sm font-medium text-white/70 group-hover:text-white transition-colors duration-300">Sign Out</p>
                         </div>
                     </div>
                 </button>

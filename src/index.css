@@ -3,14 +3,44 @@
 @tailwind utilities;
 
 @layer base {
+    :root {
+        /* Modern Color Palette */
+        --color-primary-from: #ef4444;
+        --color-primary-via: #f97316;
+        --color-primary-to: #eab308;
+
+        /* Glassmorphism */
+        --glass-bg: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.18);
+
+        /* Shadows */
+        --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
     body {
-        @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-200;
+        @apply bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 dark:text-white transition-colors duration-300;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ef4444;stop-opacity:1" /><stop offset="50%" style="stop-color:%23f97316;stop-opacity:1" /><stop offset="100%" style="stop-color:%23eab308;stop-opacity:1" /></linearGradient></defs><circle cx="16" cy="16" r="6" fill="url(%23grad)" opacity="0.8"/><circle cx="16" cy="16" r="3" fill="white"/></svg>') 16 16, auto;
+    }
+
+    a,
+    button,
+    [role="button"],
+    input[type="submit"],
+    input[type="button"] {
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ef4444;stop-opacity:1" /><stop offset="50%" style="stop-color:%23f97316;stop-opacity:1" /><stop offset="100%" style="stop-color:%23eab308;stop-opacity:1" /></linearGradient></defs><circle cx="16" cy="16" r="8" fill="url(%23grad)" opacity="0.9"/><circle cx="16" cy="16" r="4" fill="white"/></svg>') 16 16, pointer;
     }
 }
 
 @layer components {
+
+    /* Enhanced Primary Gradients */
     .bg-gradient-primary {
         @apply bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white border-none;
+    }
+
+    .bg-gradient-primary-hover {
+        @apply bg-gradient-to-r from-red-600 via-orange-600 to-yellow-600;
     }
 
     .bg-gradient-sidebar {
@@ -21,9 +51,122 @@
         @apply bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500;
     }
 
-    /* Override default button styles if they match the primary pattern */
+    /* Glassmorphism Effects */
+    .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .glass-dark {
+        background: rgba(17, 24, 39, 0.3);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-card {
+        @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50;
+    }
+
+    /* Enhanced Button Styles */
     .btn-primary {
-        @apply bg-gradient-primary hover:opacity-90 transition-opacity;
+        @apply bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 hover:from-red-600 hover:via-orange-600 hover:to-yellow-600 transform hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl;
+    }
+
+    .btn-glass {
+        @apply glass hover:bg-white/20 dark:glass-dark dark:hover:bg-gray-800/40 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110;
+    }
+
+    .btn-outline-primary {
+        @apply border-2 border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-gradient-primary hover:text-white hover:border-transparent transition-all duration-200 transform hover:scale-110;
+    }
+
+    /* Card Enhancements */
+    .card-hover {
+        @apply transition-all duration-300 hover:shadow-2xl hover:-translate-y-1;
+    }
+
+    .card-glass {
+        @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-2 border-gray-200/50 dark:border-gray-700/50 shadow-lg transition-all duration-200;
+    }
+
+    .card-glass:hover {
+        box-shadow: 0 20px 25px -5px rgba(249, 115, 22, 0.3), 0 10px 10px -5px rgba(249, 115, 22, 0.2), 0 0 0 4px rgba(249, 115, 22, 0.5);
+    }
+
+    .card-elevated {
+        @apply shadow-elevated border-2 border-transparent transition-all duration-200;
+    }
+
+    .card-elevated:hover {
+        box-shadow: 0 20px 25px -5px rgba(249, 115, 22, 0.3), 0 10px 10px -5px rgba(249, 115, 22, 0.2), 0 0 0 4px rgba(249, 115, 22, 0.5);
+    }
+
+    .card-gradient {
+        @apply bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 transition-all duration-200;
+    }
+
+    .card-gradient:hover {
+        box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3), 0 4px 6px -2px rgba(249, 115, 22, 0.2), 0 0 0 4px rgba(249, 115, 22, 0.5);
+    }
+
+    /* Input Enhancements */
+    .input-modern {
+        @apply border-2 border-gray-300 dark:border-gray-600 focus:border-orange-500 dark:focus:border-orange-400 focus:ring-4 focus:ring-orange-500/20 transition-all duration-150 rounded-lg;
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.2s ease-in;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.25s ease-out;
+    }
+
+    .animate-scale-in {
+        animation: scaleIn 0.15s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Badge Enhancements */
+    .badge-gradient {
+        @apply bg-gradient-to-r from-orange-400 to-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md;
     }
 
     /* --- Calendar Dark Mode Overrides --- */
@@ -32,66 +175,73 @@
     }
 
     .dark .rbc-off-range-bg {
-        @apply bg-gray-900/50; /* Dim background for off-range days */
+        @apply bg-gray-900/50;
     }
 
     .dark .rbc-today {
-        @apply bg-indigo-900/20; /* Highlight correctly for dark mode */
+        @apply bg-indigo-900/20;
     }
 
     .dark .rbc-header {
         @apply border-gray-700 text-gray-300 font-semibold;
     }
 
-    /* Borders */
-    .dark .rbc-month-view, 
-    .dark .rbc-time-view, 
+    .dark .rbc-month-view,
+    .dark .rbc-time-view,
     .dark .rbc-agenda-view,
     .dark .rbc-month-row,
     .dark .rbc-day-bg,
     .dark .rbc-time-header-content,
     .dark .rbc-timeslot-group,
     .dark .rbc-time-content,
-    .dark .rbc-header + .rbc-header,
-    .dark .rbc-day-bg + .rbc-day-bg {
+    .dark .rbc-header+.rbc-header,
+    .dark .rbc-day-bg+.rbc-day-bg {
         @apply border-gray-700;
     }
 
-    /* Backgrounds for slots */
     .dark .rbc-day-bg,
-    .dark .rbc-time-slot, 
+    .dark .rbc-time-slot,
     .dark .rbc-timeslot-group {
         @apply bg-gray-800 text-gray-300;
     }
-    
-    /* Ensure transparent overlay doesn't block clicks or look weird */
-    .dark .rbc-events-container, .dark .rbc-row-segment {
+
+    .dark .rbc-events-container,
+    .dark .rbc-row-segment {
         @apply bg-transparent;
     }
 
-    /* Toolbar Buttons */
     .dark .rbc-toolbar button {
         @apply text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-white transition-colors;
     }
 
-    .dark .rbc-toolbar button:active, 
+    .dark .rbc-toolbar button:active,
     .dark .rbc-toolbar button.rbc-active {
         @apply bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 shadow-md;
     }
 
-    /* Agenda View */
     .dark .rbc-agenda-view table.rbc-agenda-table {
         @apply border-gray-700;
     }
-    .dark .rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+
+    .dark .rbc-agenda-view table.rbc-agenda-table tbody>tr>td {
         @apply border-gray-700 text-gray-300;
     }
-    .dark .rbc-agenda-view table.rbc-agenda-table tbody > tr:hover {
+
+    .dark .rbc-agenda-view table.rbc-agenda-table tbody>tr:hover {
         @apply bg-gray-700;
     }
-    
-    /* Remove white background from off-range if it persists */
+
     .dark .rbc-month-row .rbc-off-range-bg {
-        @apply bg-gray-900; 
+        @apply bg-gray-900;
+    }
+}
+
+@layer utilities {
+    .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-shadow-lg {
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
 }
