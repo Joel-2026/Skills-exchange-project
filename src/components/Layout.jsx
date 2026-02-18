@@ -12,6 +12,8 @@ export default function Layout({ children }) {
 
     const navigate = useNavigate();
 
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
     // Routes where Sidebar and Navbar should be hidden
     const hideNavRoutes = ['/', '/login', '/onboarding', '/auth'];
     const shouldHideNav = hideNavRoutes.includes(location.pathname);
@@ -74,11 +76,16 @@ export default function Layout({ children }) {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-            {user && <Sidebar />}
+            {user && (
+                <Sidebar
+                    isOpen={sidebarOpen}
+                    setIsOpen={setSidebarOpen}
+                />
+            )}
 
             {/* If user is logged in, push content to right on desktop */}
             <div className={`flex flex-col min-h-screen transition-all duration-300 ${user ? 'md:pl-64' : ''}`}>
-                <Navbar />
+                <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <main className="flex-1 p-4 lg:p-8 flex flex-col">
                     <div className="flex-1">
                         {children}
