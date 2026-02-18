@@ -39,6 +39,7 @@ export default function Profile() {
     const [averageRating, setAverageRating] = useState(0);
     const [badges, setBadges] = useState([]);
     const [certificates, setCertificates] = useState([]);
+    const [isReviewsExpanded, setIsReviewsExpanded] = useState(false);
 
     useEffect(() => {
         async function getProfile() {
@@ -886,7 +887,7 @@ export default function Profile() {
                     ) : (
                         <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700">
                             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {reviews.map(review => (
+                                {(isReviewsExpanded ? reviews : reviews.slice(0, 3)).map(review => (
                                     <li key={review.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <div className="flex space-x-3">
                                             <div className="flex-shrink-0">
@@ -914,6 +915,16 @@ export default function Profile() {
                                     </li>
                                 ))}
                             </ul>
+                            {reviews.length > 3 && (
+                                <div className="bg-gray-50 dark:bg-gray-700/30 px-4 py-3 text-center sm:px-6">
+                                    <button
+                                        onClick={() => setIsReviewsExpanded(!isReviewsExpanded)}
+                                        className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 focus:outline-none"
+                                    >
+                                        {isReviewsExpanded ? 'Show Less' : `See More (${reviews.length - 3} more)`}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
