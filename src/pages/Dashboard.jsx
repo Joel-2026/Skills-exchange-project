@@ -41,39 +41,7 @@ export default function Dashboard() {
         }
     }
 
-    async function seedData() {
-        if (!profile) return;
-        const confirmSeed = confirm("Add 10 mock skills to the database? You will be listed as the provider.");
-        if (!confirmSeed) return;
 
-        const MOCK_SKILLS = [
-            { title: 'Intro to Python', category: 'Technology', description: 'Learn the basics of Python programming.', mode: 'online' },
-            { title: 'Guitar Basics', category: 'Music', description: 'Strum your first chords in 30 minutes.', mode: 'offline' },
-            { title: 'French Conversation', category: 'Language', description: 'Practice speaking French with a native speaker.', mode: 'online' },
-            { title: 'Yoga for Beginners', category: 'Lifestyle', description: 'Relaxing yoga session for stress relief.', mode: 'online' },
-            { title: 'Accounting 101', category: 'Business', description: 'Understand balance sheets and income statements.', mode: 'online' },
-            { title: 'Calculus Help', category: 'Academics', description: 'Get help with derivatives and integrals.', mode: 'online' },
-            { title: 'Vegan Cooking', category: 'Lifestyle', description: 'Healthy and delicious plant-based recipes.', mode: 'offline' },
-            { title: 'Digital Marketing', category: 'Business', description: 'SEO and Social Media strategies.', mode: 'online' },
-            { title: 'Piano Lessons', category: 'Music', description: 'Reading sheet music and basic scales.', mode: 'offline' },
-            { title: 'React.js Mentorship', category: 'Technology', description: 'Code review and best practices.', mode: 'online' },
-        ];
-
-        const skillsToInsert = MOCK_SKILLS.map(s => ({
-            provider_id: profile.id,
-            title: s.title,
-            category: s.category,
-            description: s.description,
-            mode: s.mode
-        }));
-
-        const { error } = await supabase.from('skills').insert(skillsToInsert);
-        if (error) alert(error.message);
-        else {
-            alert('Mock skills added! Go to "Explore Skills" to see them.');
-            window.location.reload();
-        }
-    }
 
     if (loading) return <DashboardSkeleton />;
 
@@ -88,9 +56,7 @@ export default function Dashboard() {
                         <p className="mt-2 max-w-2xl text-sm text-gray-600 dark:text-gray-400">
                             Manage your exchanges and skills.
                         </p>
-                        <button onClick={seedData} className="mt-2 text-xs text-orange-500 hover:text-orange-700 dark:hover:text-orange-400 underline font-medium">
-                            (Dev) Add Demo Data
-                        </button>
+
                     </div>
                     <div className="flex items-center gap-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 px-6 py-3 rounded-xl border-2 border-orange-200 dark:border-orange-700/50">
                         <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />

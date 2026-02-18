@@ -173,33 +173,16 @@ export default function Profile() {
     }
 
     async function deleteSkill(skillId) {
-        if (!confirm('Are you sure you want to delete this skill? This will also cancel any pending requests and group sessions associated with it.')) return;
-        setLoading(true);
+        // Direct delete (Database CASCADE will handle requests/sessions)
+        // Removed setLoading(true) to prevent scroll reset
         try {
-            // 1. Delete associated requests
-            const { error: requestsError } = await supabase.from('requests').delete().eq('skill_id', skillId);
-            if (requestsError) throw requestsError;
-
-            // 2. Delete associated group sessions
-            const { error: sessionsError } = await supabase.from('group_sessions').delete().eq('skill_id', skillId);
-            if (sessionsError) throw sessionsError;
-
-            // 3. Delete from saved_skills - SKIPPED
-            // The table definition has ON DELETE CASCADE, so we don't need to manually delete.
-            // Furthermore, RLS prevents us from deleting other users' saved skills, so manual delete would fail.
-
-
-            // 4. Delete the skill itself
             const { error } = await supabase.from('skills').delete().eq('id', skillId);
             if (error) throw error;
 
             setMySkills(mySkills.filter(s => s.id !== skillId));
-            alert('Skill and associated data deleted!');
         } catch (error) {
             console.error('Error deleting skill:', error);
             alert('Failed to delete skill: ' + error.message);
-        } finally {
-            setLoading(false);
         }
     }
 
