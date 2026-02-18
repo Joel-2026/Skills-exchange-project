@@ -20,16 +20,14 @@
 
     body {
         @apply bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 dark:text-white transition-colors duration-300;
-        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ef4444;stop-opacity:1" /><stop offset="50%" style="stop-color:%23f97316;stop-opacity:1" /><stop offset="100%" style="stop-color:%23eab308;stop-opacity:1" /></linearGradient></defs><circle cx="16" cy="16" r="6" fill="url(%23grad)" opacity="0.8"/><circle cx="16" cy="16" r="3" fill="white"/></svg>') 16 16, auto;
+
     }
 
     a,
     button,
     [role="button"],
     input[type="submit"],
-    input[type="button"] {
-        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ef4444;stop-opacity:1" /><stop offset="50%" style="stop-color:%23f97316;stop-opacity:1" /><stop offset="100%" style="stop-color:%23eab308;stop-opacity:1" /></linearGradient></defs><circle cx="16" cy="16" r="8" fill="url(%23grad)" opacity="0.9"/><circle cx="16" cy="16" r="4" fill="white"/></svg>') 16 16, pointer;
-    }
+    input[type="button"] {}
 }
 
 @layer components {

@@ -3,7 +3,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Spinner from './components/Spinner';
-import CursorTrail from './components/CursorTrail';
+
 
 // Lazy load all pages
 const Home = lazy(() => import('./pages/Home'));
@@ -32,7 +32,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 function App() {
   return (
     <Router>
-      <CursorTrail />
+
       <Layout>
         <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><Spinner size="lg" /></div>}>
           <Routes>
