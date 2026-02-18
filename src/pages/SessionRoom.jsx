@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { Send, Paperclip, Video, PhoneOff, LogOut } from 'lucide-react';
+import IssueCertificateModal from '../components/IssueCertificateModal';
+import EndSessionModal from '../components/EndSessionModal';
 
 export default function SessionRoom() {
     const { requestId, sessionId } = useParams(); // sessionId is for group sessions
@@ -17,11 +19,17 @@ export default function SessionRoom() {
     const [uploading, setUploading] = useState(false);
     const messagesEndRef = useRef(null);
 
+    // Modals
+    const [showEndSessionModal, setShowEndSessionModal] = useState(false);
+    const [showCertificateModal, setShowCertificateModal] = useState(false);
+
     // Context Menu State
     const [contextMenu, setContextMenu] = useState(null); // { x, y, messageId, isMe }
 
     const isGroupSession = !!sessionId;
     const currentId = sessionId || requestId;
+
+    // ... (Use existing effects) ...
 
     // 1. Fetch User & Session Details
     useEffect(() => {
@@ -259,8 +267,21 @@ export default function SessionRoom() {
         setContextMenu(null);
     };
 
-    const endSession = async () => {
+    // Modified to show modal first
+    const handleEndSessionClick = () => {
+        setShowEndSessionModal(true);
+    };
 
+    const handleConfirmEndSession = async (shouldIssueCertificate) => {
+        setShowEndSessionModal(false);
+        if (shouldIssueCertificate) {
+            setShowCertificateModal(true);
+        } else {
+            await completeSession();
+        }
+    };
+
+    const completeSession = async () => {
         try {
             if (isGroupSession) {
                 // Update group session status
@@ -272,7 +293,6 @@ export default function SessionRoom() {
                 if (sessionError) throw sessionError;
 
                 // Update all requests associated with this session to completed
-                // This ensures learners see it in their history
                 const { error: reqError } = await supabase
                     .from('requests')
                     .update({ status: 'completed' })
@@ -290,7 +310,7 @@ export default function SessionRoom() {
                 if (error) throw error;
             }
 
-            alert('Session ended successfully.');
+            // alert('Session ended successfully.'); // Optional
             navigate(isGroupSession ? '/group-sessions' : '/dashboard');
         } catch (error) {
             console.error('Error ending session:', error);
@@ -314,6 +334,15 @@ export default function SessionRoom() {
         : (user?.id === session?.learner_id ? session?.skills?.profiles?.full_name : session?.profiles?.full_name);
 
     const isProvider = user?.id === session?.provider_id;
+
+    // Prepare request object for certificate modal (needs skill info and learner info)
+    const certificateRequestData = isGroupSession ? null : {
+        ...session,
+        // Ensure structure matches what IssueCertificateModal expects
+        skills: session?.skills,
+        learner_id: session?.learner_id,
+        provider_id: session?.provider_id
+    };
 
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] bg-gray-100">
@@ -374,7 +403,7 @@ export default function SessionRoom() {
 
                     {isProvider ? (
                         <button
-                            onClick={endSession}
+                            onClick={handleEndSessionClick}
                             className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium"
                         >
                             <PhoneOff className="w-4 h-4 mr-2" />
@@ -485,6 +514,26 @@ export default function SessionRoom() {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            <EndSessionModal
+                isOpen={showEndSessionModal}
+                onClose={() => setShowEndSessionModal(false)}
+                onConfirm={handleConfirmEndSession}
+                learnerName={partnerName}
+            />
+
+            {!isGroupSession && (
+                <IssueCertificateModal
+                    isOpen={showCertificateModal}
+                    onClose={() => setShowCertificateModal(false)}
+                    request={certificateRequestData}
+                    onSuccess={() => {
+                        // After certificate, we are done
+                        navigate('/dashboard');
+                    }}
+                />
+            )}
         </div>
     );
 }
