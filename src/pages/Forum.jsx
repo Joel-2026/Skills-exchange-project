@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Plus, User, MessageCircle, Trash2, Reply } from 'lucide-react';
+import { MessageSquare, Plus, User, MessageCircle, Trash2, Reply, Flag } from 'lucide-react';
 
 export default function Forum() {
     const [posts, setPosts] = useState([]);
@@ -69,6 +69,29 @@ export default function Forum() {
             alert('Could not delete post. You might not have permission.');
         } else {
             setPosts(posts.filter(p => p.id !== postId));
+        }
+    }
+
+    async function reportPost(postId) {
+        const reason = prompt("Why are you reporting this post?");
+        if (!reason || !reason.trim()) return;
+
+        if (!user) {
+            alert("You must be logged in to report.");
+            return;
+        }
+
+        const { error } = await supabase.from('reports').insert({
+            reporter_id: user.id,
+            reported_item_id: postId,
+            reported_item_type: 'post',
+            reason: reason.trim()
+        });
+
+        if (error) {
+            alert('Failed to submit report: ' + error.message);
+        } else {
+            alert('Thank you, the report has been submitted to admins.');
         }
     }
 
@@ -156,15 +179,26 @@ export default function Forum() {
                                             </Link>
                                             <div className="flex flex-col items-end gap-2">
                                                 <span className="text-sm text-gray-500 dark:text-gray-400">{new Date(post.created_at).toLocaleDateString()}</span>
-                                                {user && (
-                                                    <button
-                                                        onClick={() => deletePost(post.id)}
-                                                        className="p-1.5 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
-                                                        title="Delete Discussion"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                )}
+                                                <div className="flex gap-1 mt-1">
+                                                    {isOwner && (
+                                                        <button
+                                                            onClick={() => deletePost(post.id)}
+                                                            className="p-1.5 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                                                            title="Delete Discussion"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                    {user && !isOwner && (
+                                                        <button
+                                                            onClick={() => reportPost(post.id)}
+                                                            className="p-1.5 text-gray-400 hover:text-orange-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                                                            title="Report Discussion"
+                                                        >
+                                                            <Flag className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">

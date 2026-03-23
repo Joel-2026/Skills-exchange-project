@@ -46,7 +46,7 @@ export default function Dashboard() {
     if (loading) return <DashboardSkeleton />;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 animate-fade-in">
             <div className="card-glass shadow-xl overflow-hidden rounded-2xl mb-8">
                 <div className="px-6 py-6 sm:px-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
@@ -66,7 +66,7 @@ export default function Dashboard() {
                         </div>
                         <button
                             onClick={() => setShowBuyCredits(true)}
-                            className="ml-2 inline-flex items-center px-4 py-2 text-xs font-bold rounded-lg shadow-md bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-300"
+                            className="ml-2 inline-flex items-center px-4 py-2 text-xs font-bold rounded-lg shadow-md bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-75"
                         >
                             Buy Credits
                         </button>
@@ -85,7 +85,7 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
                 {/* Action Card 1 */}
-                <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
+                <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-75 hover:-translate-y-1 group">
                     <div className="bg-gradient-to-br from-blue-500 to-indigo-600 px-6 py-4">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
@@ -113,7 +113,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Action Card 2 */}
-                <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
+                <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-75 hover:-translate-y-1 group">
                     <div className="bg-gradient-to-br from-orange-500 to-red-600 px-6 py-4">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
@@ -141,7 +141,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Action Card 3 - Group Sessions */}
-                <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group">
+                <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-75 hover:-translate-y-1 group">
                     <div className="bg-gradient-to-br from-green-500 to-emerald-600 px-6 py-4">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">

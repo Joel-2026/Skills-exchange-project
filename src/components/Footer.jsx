@@ -8,7 +8,7 @@ export default function Footer() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
                 <div className="mb-4 md:mb-0">
                     <span className="text-lg font-bold text-gray-900 dark:text-white">Skillify</span>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">© 2026 Skillify. All rights reserved.</p>
+                    {/* Removed copyright text as requested */}
                 </div>
                 <div className="flex space-x-6 text-sm text-gray-500 dark:text-gray-400">
                     <Link to="/about" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">About</Link>

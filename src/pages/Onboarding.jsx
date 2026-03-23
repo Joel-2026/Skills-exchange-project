@@ -25,12 +25,16 @@ export default function Onboarding() {
             if (user) {
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('onboarding_completed')
+                    .select('onboarding_completed, is_verified')
                     .eq('id', user.id)
                     .single();
 
                 if (profile?.onboarding_completed) {
-                    navigate('/dashboard', { replace: true });
+                    if (!profile?.is_verified) {
+                        navigate('/verify', { replace: true });
+                    } else {
+                        navigate('/dashboard', { replace: true });
+                    }
                 }
             }
         };
@@ -49,7 +53,7 @@ export default function Onboarding() {
 
                 if (error) throw error;
             }
-            navigate('/dashboard');
+            navigate('/verify');
         } catch (error) {
             console.error('Error saving interests:', error);
             alert('Failed to save interests. Please try again.');
@@ -68,11 +72,11 @@ export default function Onboarding() {
                     .update({ onboarding_completed: true })
                     .eq('id', user.id);
             }
-            navigate('/dashboard');
+            navigate('/verify');
         } catch (error) {
             console.error('Error skipping:', error);
             // Even if error, try to navigate?
-            navigate('/dashboard');
+            navigate('/verify');
         } finally {
             setLoading(false);
         }

@@ -19,7 +19,7 @@
     }
 
     body {
-        @apply bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 dark:text-white transition-colors duration-300;
+        @apply bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 dark:text-white transition-colors duration-75;
 
     }
 
@@ -70,24 +70,24 @@
 
     /* Enhanced Button Styles */
     .btn-primary {
-        @apply bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 hover:from-red-600 hover:via-orange-600 hover:to-yellow-600 transform hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl;
+        @apply bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 hover:from-red-600 hover:via-orange-600 hover:to-yellow-600 transform hover:scale-110 transition-all duration-100 shadow-lg hover:shadow-xl;
     }
 
     .btn-glass {
-        @apply glass hover:bg-white/20 dark:glass-dark dark:hover:bg-gray-800/40 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110;
+        @apply glass hover:bg-white/20 dark:glass-dark dark:hover:bg-gray-800/40 transition-all duration-100 shadow-md hover:shadow-lg transform hover:scale-110;
     }
 
     .btn-outline-primary {
-        @apply border-2 border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-gradient-primary hover:text-white hover:border-transparent transition-all duration-200 transform hover:scale-110;
+        @apply border-2 border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-gradient-primary hover:text-white hover:border-transparent transition-all duration-100 transform hover:scale-110;
     }
 
     /* Card Enhancements */
     .card-hover {
-        @apply transition-all duration-300 hover:shadow-2xl hover:-translate-y-1;
+        @apply transition-all duration-75 hover:shadow-2xl hover:-translate-y-1;
     }
 
     .card-glass {
-        @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-2 border-gray-200/50 dark:border-gray-700/50 shadow-lg transition-all duration-200;
+        @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-2 border-gray-200/50 dark:border-gray-700/50 shadow-lg transition-all duration-75;
     }
 
     .card-glass:hover {
@@ -95,7 +95,7 @@
     }
 
     .card-elevated {
-        @apply shadow-elevated border-2 border-transparent transition-all duration-200;
+        @apply shadow-elevated border-2 border-transparent transition-all duration-75;
     }
 
     .card-elevated:hover {
@@ -103,7 +103,7 @@
     }
 
     .card-gradient {
-        @apply bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 transition-all duration-200;
+        @apply bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 transition-all duration-75;
     }
 
     .card-gradient:hover {

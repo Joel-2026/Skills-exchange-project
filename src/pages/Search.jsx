@@ -225,7 +225,7 @@ export default function Search() {
                 }
 
                 {/* Sidebar */}
-                <div className={`fixed inset-y-0 left-0 w-80 bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${showFilters ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto`}>
+                <div className={`fixed inset-y-0 left-0 w-80 bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-transform duration-75 ease-in-out ${showFilters ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto`}>
                     <div className="p-6">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">

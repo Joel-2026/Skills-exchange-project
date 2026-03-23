@@ -49,11 +49,11 @@ function SkillCard({ skill, showProvider = true, onBook }) {
 
     return (
 
-        <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 relative group animate-fade-in">
+        <div className="card-glass overflow-hidden rounded-xl hover:shadow-2xl transition-all duration-150 hover:-translate-y-2 relative group animate-fade-in">
             <div className="absolute top-3 right-3 z-10">
                 <button
                     onClick={toggleSave}
-                    className={`p-2 rounded-full backdrop-blur-md shadow-lg transition-all duration-300 transform hover:scale-110 ${isSaved ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' : 'bg-white/90 dark:bg-gray-800/90 text-gray-400 hover:text-red-500'}`}
+                    className={`p-2 rounded-full backdrop-blur-md shadow-lg transition-all duration-75 transform hover:scale-110 ${isSaved ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' : 'bg-white/90 dark:bg-gray-800/90 text-gray-400 hover:text-red-500'}`}
                 >
                     <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
                 </button>
@@ -88,7 +88,7 @@ function SkillCard({ skill, showProvider = true, onBook }) {
 
                 <div className="mt-4">
                     <Link to={`/skill/${skill.id}`} className="block group">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate group-hover:text-gradient-primary transition-all duration-300 text-shadow" title={skill.title}>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white truncate group-hover:text-gradient-primary transition-all duration-75 text-shadow" title={skill.title}>
                             {skill.title}
                         </h3>
                     </Link>
@@ -111,7 +111,7 @@ function SkillCard({ skill, showProvider = true, onBook }) {
                             </Link>
                         </div>
                         <div className="ml-3">
-                            <Link to={`/profile/${skill.profiles.id}`} className="hover:text-gradient-primary transition-all duration-300">
+                            <Link to={`/profile/${skill.profiles.id}`} className="hover:text-gradient-primary transition-all duration-75">
                                 <p className="text-sm font-semibold text-gray-900 dark:text-white">{skill.profiles.full_name || 'Anonymous'}</p>
                             </Link>
                             {skill.averageRating > 0 && (
@@ -127,7 +127,7 @@ function SkillCard({ skill, showProvider = true, onBook }) {
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 px-6 py-4 flex gap-3">
                 <Link
                     to={`/skill/${skill.id}`}
-                    className="flex-1 inline-flex justify-center items-center px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 text-sm font-semibold rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all duration-300 transform hover:scale-105"
+                    className="flex-1 inline-flex justify-center items-center px-4 py-2.5 border-2 border-gray-300 dark:border-gray-600 text-sm font-semibold rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all duration-75 transform hover:scale-105"
                 >
                     View
                 </Link>

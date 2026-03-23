@@ -23,6 +23,8 @@ const GroupSessions = lazy(() => import('./pages/GroupSessions'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const DebugHistory = lazy(() => import('./pages/DebugHistory'));
 const About = lazy(() => import('./pages/About'));
+const Verification = lazy(() => import('./pages/Verification'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const PostDetails = lazy(() => import('./pages/PostDetails'));
 const SavedSkills = lazy(() => import('./pages/SavedSkills'));
 const Certificate = lazy(() => import('./pages/Certificate'));
@@ -38,6 +40,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Auth />} />
+            <Route path="/verify" element={<Verification />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/search" element={<Search />} />

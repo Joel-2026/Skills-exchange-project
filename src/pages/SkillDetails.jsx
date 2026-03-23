@@ -58,7 +58,7 @@ export default function SkillDetails() {
         fetchData();
     }, [skillId]);
 
-    const [sessionCount, setSessionCount] = useState(1);
+
 
     const handleBook = async () => {
         if (!user) {
@@ -70,7 +70,7 @@ export default function SkillDetails() {
             return;
         }
 
-        const totalCost = sessionCount * 1;
+        const totalCost = 1;
 
         const { data: profile } = await supabase.from('profiles').select('credits').eq('id', user.id).single();
         if (profile.credits < totalCost) {
@@ -78,20 +78,20 @@ export default function SkillDetails() {
             return;
         }
 
-        if (!confirm(`Request ${sessionCount} session(s) for "${skill.title}"? This will cost ${totalCost} credit(s) immediately.`)) {
+        if (!confirm(`Request a session for "${skill.title}"? This will cost ${totalCost} credit(s) immediately.`)) {
             return;
         }
 
         setBooking(true);
 
         try {
-            // Prepare requests
-            const requestsToInsert = Array.from({ length: sessionCount }).map(() => ({
+            // Prepare request
+            const requestsToInsert = [{
                 skill_id: skill.id,
                 learner_id: user.id,
                 provider_id: skill.provider_id,
                 status: 'pending'
-            }));
+            }];
 
             // Execute all operations in parallel for speed
             const [creditResult, requestResult, notificationResult] = await Promise.all([
@@ -100,7 +100,7 @@ export default function SkillDetails() {
                 supabase.from('notifications').insert([{
                     user_id: skill.provider_id,
                     type: 'request_received',
-                    message: `New request: ${user.email} wants to learn "${skill.title}" (${sessionCount} sessions)`,
+                    message: `New request: ${user.email} wants to learn "${skill.title}"`,
                     link: '/dashboard'
                 }])
             ]);
@@ -211,22 +211,6 @@ export default function SkillDetails() {
                     <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                         {user && user.id !== skill.provider_id ? (
                             <div className="flex flex-col md:flex-row items-center gap-4">
-                                {user && user.id !== skill.provider_id && (
-                                    <div className="flex items-center">
-                                        <label htmlFor="sessionCount" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Sessions:
-                                        </label>
-                                        <input
-                                            type="number"
-                                            id="sessionCount"
-                                            min="1"
-                                            max="10"
-                                            value={sessionCount}
-                                            onChange={(e) => setSessionCount(Math.max(1, parseInt(e.target.value) || 1))}
-                                            className="w-16 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border text-center"
-                                        />
-                                    </div>
-                                )}
                                 <button
                                     onClick={handleBook}
                                     disabled={booking}
@@ -240,7 +224,7 @@ export default function SkillDetails() {
                                     ) : (
                                         <>
                                             <CheckCircle className="w-5 h-5 mr-2" />
-                                            Request {sessionCount} Session{sessionCount > 1 ? 's' : ''} ({sessionCount} Credit{sessionCount > 1 ? 's' : ''})
+                                            Request Session (1 Credit)
                                         </>
                                     )}
                                 </button>

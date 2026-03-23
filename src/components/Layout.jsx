@@ -15,7 +15,7 @@ export default function Layout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Routes where Sidebar and Navbar should be hidden
-    const hideNavRoutes = ['/', '/login', '/onboarding', '/auth'];
+    const hideNavRoutes = ['/', '/login', '/onboarding', '/auth', '/verify'];
     const shouldHideNav = hideNavRoutes.includes(location.pathname);
 
     useEffect(() => {
@@ -27,17 +27,33 @@ export default function Layout({ children }) {
             if (currentUser) {
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('onboarding_completed')
+                    .select('onboarding_completed, is_verified, verification_status, is_admin')
                     .eq('id', currentUser.id)
                     .single();
 
-                // If profile loaded and onboarding NOT completed, and not currently ON onboarding page
-                if (profile && !profile.onboarding_completed && location.pathname !== '/onboarding') {
-                    navigate('/onboarding');
-                }
-                // If profile loaded and onboarding IS completed, and CURRENTLY on onboarding page
-                else if (profile && profile.onboarding_completed && location.pathname === '/onboarding') {
-                    navigate('/dashboard');
+                if (profile) {
+                    const status = profile.verification_status || 'unsubmitted';
+                    const needsOnboarding = !profile.onboarding_completed;
+
+                    // Force admin route protection
+                    if (location.pathname === '/admin' && !profile.is_admin) {
+                        navigate('/dashboard');
+                    }
+
+                    if (needsOnboarding && location.pathname !== '/onboarding') {
+                        navigate('/onboarding');
+                    } else if (!needsOnboarding) {
+                        // Onboarding complete, check verification status
+                        if (status === 'unsubmitted' || status === 'pending' || status === 'rejected') {
+                            if (location.pathname !== '/verify') {
+                                navigate('/verify');
+                            }
+                        } else if (status === 'approved') {
+                            if (location.pathname === '/onboarding' || location.pathname === '/verify') {
+                                navigate('/dashboard');
+                            }
+                        }
+                    }
                 }
             }
             setLoading(false);
@@ -66,7 +82,7 @@ export default function Layout({ children }) {
     // If on a hidden route (like login/onboarding), render simplified layout
     if (shouldHideNav) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-75">
                 <main className="flex-1">
                     {children}
                 </main>
@@ -75,7 +91,7 @@ export default function Layout({ children }) {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-75">
             {user && (
                 <Sidebar
                     isOpen={sidebarOpen}
@@ -84,13 +100,12 @@ export default function Layout({ children }) {
             )}
 
             {/* If user is logged in, push content to right on desktop */}
-            <div className={`flex flex-col min-h-screen transition-all duration-300 ${user ? 'md:pl-64' : ''}`}>
+            <div className={`flex flex-col min-h-screen transition-all duration-75 ${user ? 'md:pl-64' : ''}`}>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <main className="flex-1 p-4 lg:p-8 flex flex-col">
                     <div className="flex-1">
                         {children}
                     </div>
-                    <Footer />
                 </main>
             </div>
         </div>

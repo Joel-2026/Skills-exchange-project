@@ -68,14 +68,16 @@ export default function Auth() {
                 const { data: { user } } = await supabase.auth.getUser();
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('onboarding_completed')
+                    .select('onboarding_completed, is_verified')
                     .eq('id', user.id)
                     .single();
 
-                if (profile?.onboarding_completed) {
-                    navigate('/dashboard');
-                } else {
+                if (!profile?.onboarding_completed) {
                     navigate('/onboarding');
+                } else if (!profile?.is_verified) {
+                    navigate('/verify');
+                } else {
+                    navigate('/dashboard');
                 }
             }
         } catch (error) {

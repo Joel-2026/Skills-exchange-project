@@ -43,7 +43,7 @@ export default function Home() {
                     <div className="flex flex-col sm:flex-row justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
                         <Link
                             to="/login"
-                            className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-bold rounded-xl shadow-2xl btn-primary transform hover:scale-110 transition-all duration-300"
+                            className="group inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-bold rounded-xl shadow-2xl btn-primary transform hover:scale-110 transition-all duration-75"
                         >
                             Get Started
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -58,7 +58,7 @@ export default function Home() {
 
                     {/* Feature Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-5xl mx-auto animate-slide-up" style={{ animationDelay: '0.3s' }}>
-                        <div className="card-glass rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                        <div className="card-glass rounded-2xl p-6 hover:shadow-2xl transition-all duration-75 hover:-translate-y-2">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 mx-auto">
                                 <Users className="w-6 h-6 text-white" />
                             </div>
@@ -66,7 +66,7 @@ export default function Home() {
                             <p className="text-sm text-gray-600 dark:text-gray-400">Find experts and enthusiasts to learn from</p>
                         </div>
 
-                        <div className="card-glass rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2" style={{ animationDelay: '0.1s' }}>
+                        <div className="card-glass rounded-2xl p-6 hover:shadow-2xl transition-all duration-75 hover:-translate-y-2" style={{ animationDelay: '0.1s' }}>
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center mb-4 mx-auto">
                                 <Sparkles className="w-6 h-6 text-white" />
                             </div>
@@ -74,7 +74,7 @@ export default function Home() {
                             <p className="text-sm text-gray-600 dark:text-gray-400">Teach what you know and earn credits</p>
                         </div>
 
-                        <div className="card-glass rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2" style={{ animationDelay: '0.2s' }}>
+                        <div className="card-glass rounded-2xl p-6 hover:shadow-2xl transition-all duration-75 hover:-translate-y-2" style={{ animationDelay: '0.2s' }}>
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-4 mx-auto">
                                 <TrendingUp className="w-6 h-6 text-white" />
                             </div>

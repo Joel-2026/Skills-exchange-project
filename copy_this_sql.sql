@@ -1,5 +1,6 @@
 -- COPY THE CONTENTS OF THIS FILE BELOW
 -- 1. Drop old constraints
+
 ALTER TABLE public.requests
 DROP CONSTRAINT IF EXISTS requests_skill_id_fkey;
 
